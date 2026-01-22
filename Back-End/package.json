@@ -1,0 +1,44 @@
+{
+  "name": "studymate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "npm install && echo \"Project setup complete!\"",
+    "format": "prettier --write \"src/**/*.js\""
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "langgraph",
+    "express"
+  ],
+  "author": "NeoCoders",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.9",
+    "@types/ws": "^8.18.1",
+    "nodemon": "^3.1.11"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
+    "@langchain/langgraph": "^1.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.16.0",
+    "socket.io": "^4.8.3",
+    "uuid": "^13.0.0",
+    "ws": "^8.19.0",
+    "zod": "^4.3.5"
+  }
+}
