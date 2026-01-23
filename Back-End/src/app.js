@@ -17,11 +17,17 @@ app.use(
   })
 );
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+import AuthRoute from "./routes/auth.routes.js";
+import ProfileRoute from "./routes/profile.routes.js";
+
+app.use("/api/auth", AuthRoute);
+app.use("/api/profile", ProfileRoute);
 app.use("/api/lectures", LiveLectureRoute);
 app.use("/api/upload", uploadRoute);
 

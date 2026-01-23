@@ -12,11 +12,15 @@ cloudinary.config({
 
 export const uploadToCloudinary = (buffer, filename) => {
   return new Promise((resolve, reject) => {
+    const sanitizedPublicId = filename 
+      ? filename.split('.')[0].replace(/[^a-zA-Z0-9-_]/g, '_') 
+      : undefined;
+
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: 'auto',
         folder: 'uploads',
-        public_id: filename ? filename.split('.')[0] : undefined, // Optional: use original name as public_id
+        public_id: sanitizedPublicId,
       },
       (error, result) => {
         if (error) {
