@@ -1,13 +1,9 @@
-import Image from "next/image";
+import { HomePage } from '@/components/pages/home/home'
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center font-sans dark:bg-black">
-      <p className="text-primary">Primary</p>
-      <p className="text-secondary">Secondary</p>
-      <p className="text-black">Black</p>
-      <p className="text-white">white</p>
-
-    </div>
-  );
+    <main className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted">
+      <HomePage />
+    </main>
+  )
 }
