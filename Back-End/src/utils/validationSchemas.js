@@ -27,6 +27,39 @@ export const onboardingStep2Schema = z.object({
     university: z.string().optional(),
     department: z.string().optional(),
     program: z.string().optional(),
+
     yearOrSemester: z.string().optional(),
+  }),
+});
+
+export const createSemesterSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, 'Name is required'),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+  }).refine((data) => data.endDate > data.startDate, {
+    message: "End date must be after start date",
+    path: ["endDate"],
+  }),
+});
+
+export const createCourseSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, 'Name is required'),
+    code: z.string().optional(),
+    creditHours: z.number().nonnegative().optional().or(z.string().regex(/^\d+(\.\d+)?$/).transform(Number)),
+  }),
+});
+
+export const createAssessmentSchema = z.object({
+  body: z.object({
+    type: z.enum(["quiz", "test", "exam"]),
+    title: z.string().min(1, 'Title is required'),
+    mark: z.number().nonnegative(),
+    maxMark: z.number().positive(),
+    takenAt: z.coerce.date().optional(),
+  }).refine((data) => data.mark <= data.maxMark, {
+    message: "Mark cannot exceed max mark",
+    path: ["mark"],
   }),
 });
