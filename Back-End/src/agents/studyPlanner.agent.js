@@ -11,7 +11,7 @@ import studyPlannerPrompt from "../prompts/system/studyPlanner.prompt.js";
  */
 export async function generateStudyPlan(sessionSummaries, performanceData, availableHours) {
   const prompt = studyPlannerPrompt(sessionSummaries, performanceData, availableHours);
-  const response = await runLLM(prompt);
+  const response = await runLLM(prompt, "studyPlanner");
 
   try {
     return JSON.parse(response);

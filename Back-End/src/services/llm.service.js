@@ -1,30 +1,53 @@
-import axios from "axios";
 import dotenv from "dotenv";
+import { HfInference } from "@huggingface/inference";
 
 dotenv.config();
 
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
 
-// You can change this model if you want
-const MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
+// Initialize HuggingFace client
+export const hf = new HfInference(HF_API_KEY);
 
-export async function runLLM(prompt) {
+// Define models for different purposes
+const ExplanationsMODEL = "Qwen/Qwen2.5-7B-Instruct";
+const SummariesMODEL = "Qwen/Qwen2.5-7B-Instruct";
+const ExerciseGenerationMODEL = "meta-llama/Llama-3.1-8B-Instruct";
+const ThinkingMODEL = "meta-llama/Llama-3.1-8B-Instruct";
+
+export async function runLLM(prompt, purpose) {
+  // Select model based on purpose
+  let model;
+  switch (purpose) {
+    case "explanation":
+      model = ExplanationsMODEL;
+      break;
+    case "summarization":
+      model = SummariesMODEL;
+      break;
+    case "exercise":
+      model = ExerciseGenerationMODEL;
+      break;
+    case "quiz":
+      model = ExerciseGenerationMODEL;
+      break;
+    case "thinking":
+      model = ThinkingMODEL;
+      break;
+    default:
+      throw new Error(`Unknown purpose: ${purpose}`);
+  }
+
   try {
-    const response = await axios.post(
-      `https://api-inference.huggingface.co/models/${MODEL}`,
-      {
-        inputs: prompt,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${HF_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    console.log(`Using model: ${model}`, "Selected model: ", model); // Debug log to verify model selection
 
-    // HuggingFace usually returns an array
-    return response.data[0].generated_text;
+    // Use HfInference chatCompletion instead of axios
+    const res = await hf.chatCompletion({
+      model: model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0,
+      max_tokens: 1024,
+    });
+    return res.choices[0].message.content;
 
   } catch (error) {
     console.error("LLM Error:", error.response?.data || error.message);

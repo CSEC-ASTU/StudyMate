@@ -9,7 +9,7 @@ import highlightPrompt from "../prompts/system/highlight.prompt.js";
 export async function detectHighlight(text) {
   const prompt = highlightPrompt(text);
 
-  const response = await runLLM(prompt); // returns string JSON
+  const response = await runLLM(prompt, "highlight"); // returns string JSON
   try {
     return JSON.parse(response);
   } catch (e) {

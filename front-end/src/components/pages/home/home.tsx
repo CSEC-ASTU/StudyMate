@@ -9,7 +9,6 @@ import { ArrowRight, BookOpen, GraduationCap, Users, Shield, Zap, Clock, Globe, 
 export function HomePage() {
   return (
     <>
-      {/* Navigation */}
       <nav className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -38,18 +37,14 @@ export function HomePage() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="min-h-screen">
-        {/* Hero Section */}
         <section className="relative overflow-hidden pt-16 pb-24 px-4">
-          {/* Background Elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 -z-10" />
           <div className="absolute top-20 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl -z-10" />
           <div className="absolute bottom-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
           
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Content */}
               <div className="space-y-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                   <span className="text-sm font-medium text-primary">🎓 Join Thousands of Students</span>
@@ -95,23 +90,18 @@ export function HomePage() {
                 </div>
               </div>
 
-              {/* Right Content - 3D Illustration */}
               <div className="relative">
                 <div className="relative rounded-2xl overflow-hidden border border-border shadow-2xl transform hover:scale-[1.02] transition-transform duration-300">
                   <div className="aspect-video bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 flex items-center justify-center p-8">
-                    {/* 3D Books Stack */}
                     <div className="relative w-64 h-48">
-                      {/* Book 3 */}
                       <div className="absolute -right-4 -bottom-2 w-32 h-40 bg-gradient-to-br from-primary/80 to-primary rounded-lg transform rotate-6 shadow-lg">
                         <div className="absolute inset-2 bg-white/10 rounded" />
                       </div>
-                      {/* Book 2 */}
                       <div className="absolute left-12 bottom-0 w-36 h-44 bg-gradient-to-br from-primary to-primary/90 rounded-lg transform -rotate-3 shadow-xl">
                         <div className="absolute inset-3 bg-white/10 rounded flex items-center justify-center">
                           <GraduationCap className="w-12 h-12 text-white/80" />
                         </div>
                       </div>
-                      {/* Book 1 */}
                       <div className="absolute left-0 top-4 w-40 h-48 bg-gradient-to-br from-primary/90 to-primary rounded-lg shadow-2xl">
                         <div className="absolute inset-4 bg-white/10 rounded flex flex-col items-center justify-center p-4">
                           <BookOpen className="w-16 h-16 text-white/80 mb-2" />
@@ -120,7 +110,6 @@ export function HomePage() {
                       </div>
                     </div>
                     
-                    {/* Floating Elements */}
                     <div className="absolute top-6 left-6 w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
                       <Zap className="w-6 h-6 text-primary" />
                     </div>
@@ -130,7 +119,6 @@ export function HomePage() {
                   </div>
                 </div>
                 
-                {/* Stats Cards */}
                 <div className="absolute -bottom-6 -left-6">
                   <Card className="p-4 bg-background border border-border shadow-lg rounded-xl">
                     <div className="flex items-center gap-3">
@@ -163,7 +151,6 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Features Section */}
         <section className="py-20 px-4 bg-muted/30">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -176,7 +163,6 @@ export function HomePage() {
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Feature 1 */}
               <Card className="p-8 bg-background border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl group">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <BookOpen className="w-7 h-7 text-primary" />
@@ -194,7 +180,6 @@ export function HomePage() {
                 </Link>
               </Card>
 
-              {/* Feature 2 */}
               <Card className="p-8 bg-background border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl group">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Users className="w-7 h-7 text-primary" />
@@ -212,7 +197,6 @@ export function HomePage() {
                 </Link>
               </Card>
 
-              {/* Feature 3 */}
               <Card className="p-8 bg-background border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl group">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Shield className="w-7 h-7 text-primary" />
@@ -230,7 +214,6 @@ export function HomePage() {
                 </Link>
               </Card>
 
-              {/* Feature 4 */}
               <Card className="p-8 bg-background border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl group">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Clock className="w-7 h-7 text-primary" />
@@ -248,7 +231,6 @@ export function HomePage() {
                 </Link>
               </Card>
 
-              {/* Feature 5 */}
               <Card className="p-8 bg-background border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl group">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <GraduationCap className="w-7 h-7 text-primary" />
@@ -266,7 +248,6 @@ export function HomePage() {
                 </Link>
               </Card>
 
-              {/* Feature 6 */}
               <Card className="p-8 bg-background border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl group">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Zap className="w-7 h-7 text-primary" />
@@ -287,7 +268,6 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
         <section className="py-20 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <Card className="p-12 bg-primary/5 border-primary/20">
@@ -317,7 +297,6 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="border-t border-border py-8 px-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">

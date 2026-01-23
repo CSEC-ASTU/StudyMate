@@ -1,5 +1,5 @@
 import { retrieveContext as searchRAG } from "./rag/retrieval.service.js";
-// import { searchGoogle } from "./search.service.js";
+import { searchWeb } from "./serper.service.js";
 import { searchMaterials } from "./material.service.js";
 
 export async function resolveContext({
@@ -17,8 +17,8 @@ export async function resolveContext({
   if (rag) return { source: "rag", data: rag };
 
   // 3. Web
-//   const web = await searchGoogle(text);
-//   if (web) return { source: "web", data: web };
+  const web = await searchWeb(text);
+  if (web) return { source: "web", data: web };
 
   return null;
 }

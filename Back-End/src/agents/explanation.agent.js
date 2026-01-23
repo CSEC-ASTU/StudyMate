@@ -1,5 +1,5 @@
 import { runLLM } from "../services/llm.service.js";
-import explanationPrompt from "../prompts/explanation.prompt.js";
+import explanationPrompt from "../prompts/system/explanation.prompt.js";
 
 /**
  * Generate explanation for a highlight
@@ -9,7 +9,7 @@ import explanationPrompt from "../prompts/explanation.prompt.js";
  */
 export async function generateExplanation(highlight, context = null) {
   const prompt = explanationPrompt(highlight, context);
-  const response = await runLLM(prompt);
+  const response = await runLLM(prompt, "explanation");
   try {
     return JSON.parse(response);
   } catch (e) {
