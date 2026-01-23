@@ -50,6 +50,7 @@ export function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [passwordsMatch, setPasswordsMatch] = useState(true)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [apiError, setApiError] = useState<string>('')
   const { errors, setErrors, clearErrors } = useSignupStore()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,6 +59,9 @@ export function SignupPage() {
       ...prev,
       [name]: value,
     }))
+
+    // Clear API error when user starts typing
+    if (apiError) setApiError('')
 
     // Check if passwords match
     if (name === 'confirmPassword') {
@@ -162,12 +166,45 @@ export function SignupPage() {
     if (!validateForm()) return
 
     setIsLoading(true)
-    // Handle signup logic here
-    setTimeout(() => {
-      setIsLoading(false)
-      // Redirect to academic router after successful account creation
+    setApiError('')
+
+    try {
+      // Use the correct backend URL
+      const BACKEND_URL = 'https://studymate-api-vl93.onrender.com'
+      
+      // API call to signup endpoint with correct field name (fullName instead of name)
+      const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName, // Changed from 'name' to 'fullName'
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Signup failed')
+      }
+
+      // Store user data in localStorage
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user))
+      }
+
+      // Redirect to dashboard/courses after successful account creation
       router.push('/academic')
-    }, 1000)
+      
+    } catch (error: any) {
+      console.error('Signup error:', error)
+      setApiError(error.message || 'An error occurred during signup. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -184,6 +221,13 @@ export function SignupPage() {
                 Join us and start your journey today
               </p>
             </div>
+
+            {/* API Error Message */}
+            {apiError && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive text-center">{apiError}</p>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
