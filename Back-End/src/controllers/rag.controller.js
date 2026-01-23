@@ -2,7 +2,6 @@ import multer from "multer";
 import { ingestText } from "../services/rag/ingestion.service.js";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import mammoth from "mammoth";
-import { extractTextFromPptx } from "pptx-parser";
 import officeparser from "officeparser";
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -16,15 +15,20 @@ async function extractTextFromDoc(buffer) {
     });
 }
 
-export async function ingestFile(req, res) {
+export async function ingestFile(req) {
     try {
-        if (!req.file) return res.status(400).json({ error: "File required" });
+        if (!req.file) {
+            throw new Error("File required");
+        }
 
         const { originalname, buffer } = req.file;
         let text = "";
 
         if (originalname.endsWith(".pdf")) {
-            const pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+            const pdfDoc = await pdfjsLib.getDocument({
+                data: new Uint8Array(buffer),
+            }).promise;
+
             for (let i = 1; i <= pdfDoc.numPages; i++) {
                 const page = await pdfDoc.getPage(i);
                 const content = await page.getTextContent();
@@ -36,24 +40,33 @@ export async function ingestFile(req, res) {
         } else if (originalname.endsWith(".doc")) {
             text = await extractTextFromDoc(buffer);
         } else if (originalname.endsWith(".pptx")) {
-            const slides = await extractTextFromPptx(buffer);
-            text = slides.join("\n\n");
+            const ast = await officeparser.parseOffice(buffer, {
+                ignoreNotes: true,
+                newlineDelimiter: "\n\n",
+            });
+
+            text = ast.toText();
         } else if (originalname.endsWith(".txt")) {
             text = buffer.toString("utf-8");
         } else {
-            return res.status(400).json({ error: "Unsupported file type" });
+            throw new Error("Unsupported file type");
         }
 
         if (!text.trim()) {
-            return res.status(400).json({ error: "No text could be extracted from file" });
+            throw new Error("No text could be extracted from file");
         }
 
-        const count = await ingestText({ text, metadata: req.body.metadata || {} });
+        const count = await ingestText({
+            text,
+            metadata: req.body.metadata || {},
+        });
 
-        res.json({ stored_chunks: count });
+        return {
+            stored_chunks: count,
+        };
     } catch (err) {
         console.error("File ingestion error:", err);
-        res.status(500).json({ error: err.message });
+        throw err; // 👈 Let controller handle response
     }
 }
 

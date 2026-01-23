@@ -7,9 +7,14 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "setup": "npm install && echo \"Project setup complete!\"",
-    "format": "prettier --write \"src/**/*.js\""
+    "format": "prettier --write \"src/**/*.js\"",
+    "wake-db": "node -e \"import('./utils/dbWakeUp.js').then(m => m.wakeNeonDB())\"",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "db:status": "node scripts/dbStatus.js"
   },
   "keywords": [
     "ai",
@@ -24,31 +29,30 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.9",
     "@types/ws": "^8.18.1",
-    "nodemon": "^3.1.11"
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2"
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.3",
     "@huggingface/inference": "^4.13.10",
-
     "@langchain/langgraph": "^1.1.1",
     "@prisma/client": "^6.19.2",
-
     "@qdrant/js-client-rest": "^1.16.2",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "googleapis": "^170.1.0",
     "helmet": "^8.1.0",
-    "lodash": "^4.17.23",
     "jsonwebtoken": "^9.0.3",
+    "lodash": "^4.17.23",
     "mammoth": "^1.11.0",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "officeparser": "^6.0.4",
     "openai": "^6.16.0",
     "pdfjs-dist": "^5.4.530",
-    "pptx-parser": "^1.1.7-beta.9",
     "prisma": "^6.19.2",
     "socket.io": "^4.8.3",
     "uuid": "^13.0.0",

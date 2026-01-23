@@ -1,13 +1,23 @@
-Academic Portal Application
-📋 Overview
-A modern, responsive academic portal built with Next.js 14, featuring user authentication, academic information collection, and a clean, intuitive UI.
+🛠️ Tech Stack
+Frontend
+Next.js 14 - React framework with App Router
 
-🚀 Features
-🔐 Authentication System
-Login & Signup Pages: Secure user authentication with form validation
+TypeScript - Type-safe JavaScript
 
-Social Login: Integration with Google and GitHub OAuth
+Tailwind CSS - Utility-first CSS framework
 
-Form Validation: Comprehensive validation using Zod and Zustand
+Zod - Schema validation library
 
-Password Security: Strong password requirements (8+ chars, uppercase, number, special character)
+Zustand - State management
+
+UI Components
+Custom UI components (Button, Input, Label, Card, Select)
+
+Lucide React - Icon library
+
+Development Tools
+PNPM - Fast, disk space efficient package manager
+
+ESLint - Code linting
+
+TypeScript - Static type checking

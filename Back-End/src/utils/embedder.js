@@ -1,6 +1,11 @@
 import { InferenceClient } from "@huggingface/inference";
+import dotenv from "dotenv";
 
-const client = new InferenceClient(process.env.HF_TOKEN);
+dotenv.config(); // Load environment variables first
+
+const token = String(process.env.HF_TOKEN);
+
+const client = new InferenceClient(token); // Pass token directly as string
 
 export async function embedText(text) {
     return await client.featureExtraction({
