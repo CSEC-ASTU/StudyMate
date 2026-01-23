@@ -1,0 +1,5 @@
+describe('Simple Test', () => {
+  test('math works', () => {
+    expect(1 + 1).toBe(2);
+  });
+});

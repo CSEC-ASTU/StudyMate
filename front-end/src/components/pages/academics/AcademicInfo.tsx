@@ -1,7 +1,6 @@
 'use client'
 
 import React from "react"
-
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +14,29 @@ import {
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { ChevronRight } from 'lucide-react'
+import { z } from 'zod'
+import { create } from 'zustand'
+
+// Zod validation schema
+const academicInfoSchema = z.object({
+  educationLevel: z.string().min(1, 'Education level is required'),
+  institutionName: z.string()
+    .min(1, 'Institution name is required')
+    .regex(/^[a-zA-Z\s]*$/, 'Institution name must contain only letters and spaces'),
+})
+
+// Zustand store for form state and validation
+interface AcademicInfoStore {
+  errors: Record<string, string>
+  setErrors: (errors: Record<string, string>) => void
+  clearErrors: () => void
+}
+
+const useAcademicInfoStore = create<AcademicInfoStore>((set) => ({
+  errors: {},
+  setErrors: (errors) => set({ errors }),
+  clearErrors: () => set({ errors: {} }),
+}))
 
 interface AcademicInfoProps {
   onNext: (data: { educationLevel: string; institutionName: string }) => void
@@ -24,10 +46,90 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
   const [educationLevel, setEducationLevel] = useState('')
   const [institutionName, setInstitutionName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const { errors, setErrors, clearErrors } = useAcademicInfoStore()
+
+  const handleEducationLevelChange = (value: string) => {
+    setEducationLevel(value)
+    if (touched.educationLevel) {
+      validateField('educationLevel', value)
+    }
+  }
+
+  const handleInstitutionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setInstitutionName(value)
+    if (touched.institutionName) {
+      validateField('institutionName', value)
+    }
+  }
+
+  const handleBlur = (field: string, value: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+    validateField(field, value)
+  }
+
+  const validateField = (field: string, value: string) => {
+    try {
+      if (field === 'educationLevel') {
+        if (!value.trim()) {
+          setErrors({ ...errors, educationLevel: 'Education level is required' })
+        } else {
+          const newErrors = { ...errors }
+          delete newErrors.educationLevel
+          setErrors(newErrors)
+        }
+      } else if (field === 'institutionName') {
+        if (!value.trim()) {
+          setErrors({ ...errors, institutionName: 'Institution name is required' })
+        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+          setErrors({ ...errors, institutionName: 'Institution name must contain only letters and spaces' })
+        } else {
+          const newErrors = { ...errors }
+          delete newErrors.institutionName
+          setErrors(newErrors)
+        }
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setErrors({ ...errors, [field]: error.issues[0].message })
+      }
+    }
+  }
+
+  const validateForm = () => {
+    try {
+      academicInfoSchema.parse({
+        educationLevel,
+        institutionName,
+      })
+      clearErrors()
+      return true
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {}
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as string] = err.message
+          }
+        })
+        setErrors(newErrors)
+      }
+      return false
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!educationLevel || !institutionName) return
+    
+    // Mark all fields as touched
+    const allTouched = {
+      educationLevel: true,
+      institutionName: true,
+    }
+    setTouched(allTouched)
+    
+    if (!validateForm()) return
 
     setIsLoading(true)
     setTimeout(() => {
@@ -36,7 +138,7 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
     }, 500)
   }
 
-  const isComplete = educationLevel && institutionName
+  const isComplete = educationLevel && institutionName && Object.keys(errors).length === 0
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12">
@@ -61,8 +163,18 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                 <Label htmlFor="education" className="text-sm font-medium text-foreground">
                   Education Level
                 </Label>
-                <Select value={educationLevel} onValueChange={setEducationLevel}>
-                  <SelectTrigger className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition">
+                <Select 
+                  value={educationLevel} 
+                  onValueChange={handleEducationLevelChange}
+                  onOpenChange={(open) => {
+                    if (!open && educationLevel) {
+                      handleBlur('educationLevel', educationLevel)
+                    }
+                  }}
+                >
+                  <SelectTrigger className={`w-full px-4 py-2.5 bg-input border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:border-primary transition ${
+                    errors.educationLevel ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
+                  }`}>
                     <SelectValue placeholder="Select your education level" />
                   </SelectTrigger>
                   <SelectContent>
@@ -71,6 +183,9 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                     <SelectItem value="graduate">Graduate</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.educationLevel && (
+                  <p className="text-xs text-destructive mt-1">{errors.educationLevel}</p>
+                )}
               </div>
 
               {/* Institution Name */}
@@ -83,10 +198,16 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                   type="text"
                   placeholder="Enter your school or university name"
                   value={institutionName}
-                  onChange={(e) => setInstitutionName(e.target.value)}
+                  onChange={handleInstitutionNameChange}
+                  onBlur={() => handleBlur('institutionName', institutionName)}
                   required
-                  className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition"
+                  className={`w-full px-4 py-2.5 bg-input border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-primary transition ${
+                    errors.institutionName ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
+                  }`}
                 />
+                {errors.institutionName && (
+                  <p className="text-xs text-destructive mt-1">{errors.institutionName}</p>
+                )}
               </div>
 
               {/* Submit Button */}
