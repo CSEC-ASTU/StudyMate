@@ -155,38 +155,45 @@ export default function LivestreamPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Main container */}
-      <div className="flex flex-col mx-auto w-full max-w-4xl">
+      <div className="flex flex-col mx-auto w-full max-w-4xl px-4 md:px-6 lg:px-0">
         {/* Top Section - Transcript with proper styling */}
         <div
           ref={transcriptContainerRef}
-          className="flex-1 overflow-y-auto pt-10 pb-30 scroll-smooth"
+          className="flex-1 overflow-y-auto pt-6 md:pt-10 pb-30 scroll-smooth"
           style={{
-            scrollBehavior: "smooth"
+            scrollBehavior: "smooth",
           }}
         >
           <TranscriptPanel isRecording={isRecording} />
         </div>
 
-        {/* Scroll to bottom button - More prominent */}
+        {/* Scroll to bottom button - Responsive positioning */}
         {showScrollButton && (
           <button
             onClick={() => scrollToBottom()}
-            className="fixed top-20 right-6 z-50 p-3 bg-primary/95 text-primary-foreground rounded-full shadow-xl hover:bg-primary transition-all transform hover:scale-110 active:scale-95 border border-primary/30 backdrop-blur-sm"
+            className="fixed z-50 p-3 bg-primary/95 text-primary-foreground rounded-full shadow-xl hover:bg-primary transition-all transform hover:scale-110 active:scale-95 border border-primary/30 backdrop-blur-sm"
+            style={{
+              top: "1.25rem",
+              right: "1rem",
+              fontSize: "clamp(0.75rem, 2vw, 0.875rem)",
+            }}
             aria-label="Scroll to latest"
           >
-            <div className="flex items-center gap-2 px-1">
+            <div className="flex items-center gap-1.5 md:gap-2 px-0.5 md:px-1">
               {isRecording && (
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500 animate-pulse" />
               )}
-              <ChevronDown className="w-5 h-5" />
-              <span className="text-xs font-medium">Latest</span>
+              <ChevronDown className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-xs font-medium hidden sm:inline">
+                Latest
+              </span>
             </div>
           </button>
         )}
 
         {/* Bottom Section - Visualizer & Controls */}
-        <div className="shrink-0 relative flex items-end justify-center pb-6">
-          <div className="fixed bottom-0 max-w-4xl w-full h-32 rounded-2xl border mb-9 dark:bg-[#1d1d1d] bg-[#f5f5f5]">
+        <div className="shrink-0 relative flex items-end justify-center pb-4 md:pb-6">
+          <div className="fixed bottom-0 max-w-4xl w-full h-28 md:h-32 rounded-t-2xl md:rounded-2xl border mb-4 md:mb-8 dark:bg-[#1d1d1d] bg-[#fff8f8] px-4 md:px-0">
             {/* Wave Visualizer - only shown when recording */}
             {isRecording && (
               <div className="absolute inset-0">
@@ -198,12 +205,12 @@ export default function LivestreamPage() {
             )}
 
             {/* Center content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-3 md:p-4">
               {/* Recording status - shown above button when recording */}
               {isRecording && (
-                <div className="flex items-center gap-4 mb-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-4 text-xs md:text-sm">
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-red-400 font-medium">Recording</span>
                   </div>
                   <span className="text-foreground font-mono">
@@ -212,13 +219,13 @@ export default function LivestreamPage() {
                 </div>
               )}
 
-              {/* Mic Button */}
+              {/* Mic Button - Responsive sizing */}
               <button
                 type="button"
                 onClick={handleToggle}
                 className={`
                   relative flex items-center justify-center
-                  w-14 h-14 rounded-full
+                  w-12 h-12 md:w-14 md:h-14 rounded-full
                   transition-all duration-300 ease-out
                   cursor-pointer
                   border-2 backdrop-blur-sm
@@ -230,38 +237,40 @@ export default function LivestreamPage() {
                 `}
                 style={{
                   boxShadow: isRecording
-                    ? "0 0 30px rgba(239, 68, 68, 0.4), 0 0 60px rgba(239, 68, 68, 0.2)"
-                    : "0 0 30px rgba(var(--primary-glow), 0.3), 0 0 60px rgba(var(--primary-glow), 0.15)",
+                    ? "0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2)"
+                    : "0 0 20px rgba(var(--primary-glow), 0.3), 0 0 40px rgba(var(--primary-glow), 0.15)",
                 }}
                 aria-label={isRecording ? "Stop recording" : "Start recording"}
               >
                 {isRecording ? (
-                  <Square className="w-7 h-7 text-red-500" />
+                  <Square className="w-5 h-5 md:w-7 md:h-7 text-red-500" />
                 ) : (
-                  <Mic className="w-8 h-8 text-primary" />
+                  <Mic className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 )}
               </button>
 
               {/* Tap to start text - only when not recording */}
               {!isRecording && (
-                <p className="text-muted-foreground text-sm mt-4">
+                <p className="text-muted-foreground text-xs md:text-sm mt-3 md:mt-4">
                   Tap to start recording
                 </p>
               )}
 
-              {/* Error Display */}
+              {/* Error Display - Responsive */}
               {error && (
-                <div className="mt-4 px-4 py-2 bg-destructive/10 rounded-lg border border-destructive/30 backdrop-blur-sm">
-                  <p className="text-xs text-destructive">{error}</p>
+                <div className="mt-3 md:mt-4 px-3 py-1.5 md:px-4 md:py-2 bg-destructive/10 rounded-lg border border-destructive/30 backdrop-blur-sm max-w-[90vw]">
+                  <p className="text-xs text-destructive text-center">
+                    {error}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="fixed bottom-0 w-full max-w-4xl flex justify-center text-xs text-muted-foreground bg-background/80 backdrop-blur-sm p-2">
-          <p className="text-center">Powered by StudyMate</p>
+        {/* Footer - Responsive */}
+        <div className="fixed bottom-0 w-full max-w-4xl flex justify-center text-[10px] xs:text-xs text-muted-foreground bg-background/80 backdrop-blur-sm p-1.5 md:p-2 px-4 md:px-0">
+          <p>Powered by StudyMate</p>
         </div>
       </div>
 
@@ -281,14 +290,20 @@ export default function LivestreamPage() {
           --primary-glow: 40, 40, 50;
         }
 
-        /* Custom scrollbar */
+        /* Custom scrollbar - Responsive */
         * {
           scrollbar-width: thin;
           scrollbar-color: rgba(var(--primary-glow), 0.2) transparent;
         }
 
         ::-webkit-scrollbar {
-          width: 8px;
+          width: 6px;
+        }
+
+        @media (min-width: 640px) {
+          ::-webkit-scrollbar {
+            width: 8px;
+          }
         }
 
         ::-webkit-scrollbar-track {
@@ -308,6 +323,34 @@ export default function LivestreamPage() {
         /* Ensure smooth scrolling */
         .scroll-smooth {
           -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+          .markdown-content {
+            font-size: 0.9375rem;
+            line-height: 1.5;
+          }
+
+          .markdown-content h1,
+          .markdown-content h2,
+          .markdown-content h3 {
+            font-size: 1.125rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+          }
+
+          .markdown-content p {
+            margin-bottom: 0.75rem;
+          }
+        }
+
+        /* Tablet optimizations */
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .markdown-content {
+            font-size: 1rem;
+            line-height: 1.6;
+          }
         }
       `}</style>
     </div>

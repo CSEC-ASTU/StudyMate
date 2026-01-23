@@ -38,14 +38,14 @@ export function TranscriptPanel({ isRecording }: { isRecording: boolean }) {
   }, [isRecording, index]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 px-4 md:px-0">
       {" "}
       {entries.map((e) => (
         <MarkdownRenderer key={e.id} content={e.content} />
       ))}
       {streamingText && <MarkdownRenderer content={streamingText} streaming />}
       {/* Larger empty div for better scroll target */}
-      <div className="h-50" id="transcript-end" />
+      <div className="h-40 md:h-50" id="transcript-end" />
     </div>
   );
 }
