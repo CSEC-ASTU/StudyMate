@@ -57,6 +57,30 @@ class MaterialService {
 
     return { material, attachment, isKnownMaterial };
   }
+
+  async searchMaterials(query, excludeMaterialId) {
+    const materials = await prisma.material.findMany({
+      where: {
+        AND: [
+          {
+            id: { not: excludeMaterialId || undefined },
+          },
+          {
+            OR: [
+              { title: { contains: query, mode: "insensitive" } },
+              { universityName: { contains: query, mode: "insensitive" } },
+              { courseName: { contains: query, mode: "insensitive" } },
+              { keywords: { has: query } },
+            ],
+          },
+        ],
+      },
+    });
+
+    return materials;
+  } 
 }
 
+
 export default new MaterialService();
+export const { uploadMaterial, searchMaterials } = new MaterialService();

@@ -17,14 +17,14 @@ async function startServer() {
   try {
     // Initialize database connection with wake-up
     await initializeDatabase();
-    
+
     // Initialize Qdrant (if needed)
     try {
       await initQdrant();
     } catch (error) {
       console.warn("⚠️ Failed to initialize Qdrant. Proceeding without Vector DB.", error.message);
     }
-    
+
     const server = app.listen(port, () => {
       console.log(`🚀 Server running on port ${port} (${environment})`);
       console.log(`✅ Health check: http://localhost:${port}/health`);
