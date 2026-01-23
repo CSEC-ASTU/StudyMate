@@ -14,6 +14,8 @@ import CourseRoute from "./routes/course.routes.js";
 import AssessmentRoute from "./routes/assessment.routes.js";
 import AnalysisRoute from "./routes/analysis.routes.js";
 import LiveLectureRoute from "./routes/lecture.routes.js";
+import uploadRoute from "./routes/upload.routes.js";
+
 
 const app = express();
 
@@ -53,9 +55,11 @@ app.use('/api', ensureDBAwake);
 app.use("/api/auth", AuthRoute);
 app.use("/api/profile", ProfileRoute);
 app.use("/api/lectures", LiveLectureRoute);
+app.use("/api/upload", uploadRoute);
 app.use("/api/semesters", SemesterRoute);
 app.use("/api/courses", CourseRoute);
 app.use("/api", AssessmentRoute); 
 app.use("/api", AnalysisRoute);
+
 
 export default app;
