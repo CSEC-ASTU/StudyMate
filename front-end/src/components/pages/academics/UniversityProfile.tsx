@@ -320,7 +320,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
                 )}
               </Button>
 
-              
             </form>
 
             {/* Info Note */}
