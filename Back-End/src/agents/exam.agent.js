@@ -10,7 +10,7 @@ import examPrompt from "../prompts/system/exam.prompt.js";
  */
 export async function generateExam(sessionSummaries, quizBank, numQuestions = 10) {
   const prompt = examPrompt(sessionSummaries, quizBank, numQuestions);
-  const response = await runLLM(prompt);
+  const response = await runLLM(prompt, "exercise");
 
   try {
     return JSON.parse(response);
