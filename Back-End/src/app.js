@@ -40,7 +40,6 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-<<<<<<< HEAD
 // Wake DB endpoint (manual trigger)
 app.post('/api/wake-db', async (req, res) => {
   try {
@@ -72,10 +71,5 @@ app.use("/api", AnalysisRoute);
 
 
 export default app;
-=======
-app.use("/api/rag", RagRoute);
-app.use("/api/lectures", LiveLectureRoute);
 
 
-export default app;  
->>>>>>> ea53aa4 (Add Serper API service, update GoogleSearch nodes, fix app and server)
