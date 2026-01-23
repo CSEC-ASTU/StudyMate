@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import multer from "multer";
+import RagRoute from "./routes/rag.routes.js";
+
+
 import { config } from "./config/server.js";
 import { ensureDBAwake } from './middleware/dbMiddleware.js';
 import { wakeNeonDB } from './utils/dbWakeUp.js';
@@ -28,6 +31,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -67,3 +71,5 @@ app.use("/api", AnalysisRoute);
 
 
 export default app;
+
+

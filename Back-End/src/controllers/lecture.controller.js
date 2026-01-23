@@ -1,5 +1,7 @@
 import LectureSessionService from "../services/lectureSession.service.js";
 import { lectureEventEmitter } from "../event/lecture.events.js";
+import LectureBufferService from "../utils/LectureBufferService.js";
+import { processLectureChunk } from "../graphs/liveLecture.graph.js";
 
 export async function startLectureHandler(req, res) {
   const { userId, courseId, materialIds = [], metadata = {} } = req.body;
@@ -37,4 +39,25 @@ export async function stopLectureHandler(req, res) {
   });
 
   return res.status(200).json({ ok: true });
+}
+
+export async function receiveTranscript(req, res) {
+
+  const { text, courseId, materialId } = req.body;
+
+  LectureBufferService.addChunk(text);
+
+  const flushed = LectureBufferService.flushIfReady();
+
+  if (!flushed) {
+    return res.json({ status: "buffering" });
+  }
+
+  const result = await processLectureChunk({
+    text: flushed,
+    courseId,
+    materialId
+  });
+
+  res.json(result);
 }
