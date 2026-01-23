@@ -34,6 +34,9 @@ export const uploadMaterial = async (req, res) => {
         uploadedByUserId: req.user.id,
         title: material.title,
         courseId: validationResult.data.courseId,
+        fileHash: material.fileHash,
+        courseName: material.courseName,
+        type: material.type,
       };
 
       count = await ingestFile(req);

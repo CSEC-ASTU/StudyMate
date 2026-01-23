@@ -1,3 +1,4 @@
+// lectureMemory.service.js
 class LectureMemoryService {
     constructor() {
         this.shortTerm = [];
