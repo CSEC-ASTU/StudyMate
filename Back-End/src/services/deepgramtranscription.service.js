@@ -21,8 +21,7 @@ export async function transcribeAudioChunk(audioBuffer, mimeType) {
         language: "en",         // or auto-detect
       }
     );
-    console.log("AI respons", response.result)
-    console.log("AI respons", response.result?.results?.channels?.[0]?.alternatives?.[0])
+    
     const transcript = response.result?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
 
 

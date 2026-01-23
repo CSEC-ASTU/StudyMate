@@ -11,15 +11,21 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  fullName       String
-  passwordHash   String
-  onboardingStep Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(uuid())
+  email           String   @unique
+  fullName        String
+  passwordHash    String
+  onboardingStep  Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
 
-  profile Profile?
+  profile         Profile?
+  semesters       Semester[]
+  courses         Course[]
+  assessments     Assessment[]
+  semesterAnalyses SemesterAnalysis[]
+
 }
 
 model Profile {
@@ -50,4 +56,78 @@ model Material {
   uploadedByUserId String
   isGlobal         Boolean  @default(false)
   createdAt        DateTime @default(now())
+}
+
+model Semester {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  courses   Course[]
+  analysis  SemesterAnalysis?
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  semesterId  String
+  semester    Semester @relation(fields: [semesterId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  code        String?
+  creditHours Float? @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assessments Assessment[]
+  progress    CourseProgress?
+}
+
+model Assessment {
+  id        String   @id @default(uuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  type      String   // "quiz" | "test" | "exam"
+  title     String
+  mark      Float
+  maxMark   Float
+  takenAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model CourseProgress {
+  id                 String   @id @default(uuid())
+  courseId           String   @unique
+  course             Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  averageMark        Float    @default(0)
+  lastMark           Float    @default(0)
+  quizzesTaken       Int      @default(0)
+  testsTaken         Int      @default(0)
+  examsTaken         Int      @default(0)
+  progressPercentage Float    @default(0)
+  
+  updatedAt          DateTime @updatedAt
+}
+
+model SemesterAnalysis {
+  id                 String   @id @default(uuid())
+  semesterId         String   @unique
+  semester           Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+  
+  totalCourses       Int      @default(0)
+  averageMark        Float    @default(0)
+  progressPercentage Float    @default(0)
+  
+  updatedAt          DateTime @updatedAt
 }

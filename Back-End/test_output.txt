@@ -1,0 +1,91 @@
+
+> studymate@1.0.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js
+
+  console.log
+    [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+(node:39256) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/semester_course.test.js (9.432 s)
+  Semester and Course API
+    × POST /api/semesters - Create Semester (1782 ms)
+    × GET /api/semesters - List User Semesters (473 ms)
+    × POST /api/semesters/:id/courses - Create Course (2075 ms)
+    × GET /api/courses/:id - Get Course (480 ms)
+    √ DELETE /api/semesters/:id - Delete Semester
+
+  ● Semester and Course API › POST /api/semesters - Create Semester
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 500
+
+    [0m [90m 52 |[39m       })[33m;[39m
+     [90m 53 |[39m
+    [31m[1m>[22m[39m[90m 54 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m201[39m)[33m;[39m
+     [90m    |[39m                        [31m[1m^[22m[39m
+     [90m 55 |[39m     expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'id'[39m)[33m;[39m
+     [90m 56 |[39m     expect(res[33m.[39mbody[33m.[39mname)[33m.[39mtoBe([32m'Fall 2024'[39m)[33m;[39m
+     [90m 57 |[39m     semesterId [33m=[39m res[33m.[39mbody[33m.[39mid[33m;[39m[0m
+
+      at Object.toBe (tests/semester_course.test.js:54:24)
+
+  ● Semester and Course API › GET /api/semesters - List User Semesters
+
+    expect(received).toBeTruthy()
+
+    Received: undefined
+
+    [0m [90m 67 |[39m     expect([33mArray[39m[33m.[39misArray(res[33m.[39mbody))[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 68 |[39m     [36mconst[39m found [33m=[39m res[33m.[39mbody[33m.[39mfind(s [33m=>[39m s[33m.[39mid [33m===[39m semesterId)[33m;[39m
+    [31m[1m>[22m[39m[90m 69 |[39m     expect(found)[33m.[39mtoBeTruthy()[33m;[39m
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 70 |[39m   })[33m;[39m
+     [90m 71 |[39m
+     [90m 72 |[39m   [90m// 4. Create Course[39m[0m
+
+      at Object.toBeTruthy (tests/semester_course.test.js:69:19)
+
+  ● Semester and Course API › POST /api/semesters/:id/courses - Create Course
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 404
+
+    [0m [90m 81 |[39m       })[33m;[39m
+     [90m 82 |[39m
+    [31m[1m>[22m[39m[90m 83 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m201[39m)[33m;[39m
+     [90m    |[39m                        [31m[1m^[22m[39m
+     [90m 84 |[39m     expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'id'[39m)[33m;[39m
+     [90m 85 |[39m     expect(res[33m.[39mbody[33m.[39msemesterId)[33m.[39mtoBe(semesterId)[33m;[39m
+     [90m 86 |[39m     courseId [33m=[39m res[33m.[39mbody[33m.[39mid[33m;[39m[0m
+
+      at Object.toBe (tests/semester_course.test.js:83:24)
+
+  ● Semester and Course API › GET /api/courses/:id - Get Course
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 93 |[39m       [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${token}`[39m)[33m;[39m
+     [90m 94 |[39m
+    [31m[1m>[22m[39m[90m 95 |[39m     expect(res[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m    |[39m                        [31m[1m^[22m[39m
+     [90m 96 |[39m     expect(res[33m.[39mbody[33m.[39mid)[33m.[39mtoBe(courseId)[33m;[39m
+     [90m 97 |[39m     expect(res[33m.[39mbody[33m.[39mcode)[33m.[39mtoBe([32m'CS101'[39m)[33m;[39m
+     [90m 98 |[39m   })[33m;[39m[0m
+
+      at Object.toBe (tests/semester_course.test.js:95:24)
+
+Test Suites: 1 failed, 1 total
+Tests:       4 failed, 1 passed, 5 total
+Snapshots:   0 total
+Time:        9.504 s, estimated 10 s
+Ran all test suites.

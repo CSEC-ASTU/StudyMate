@@ -11,7 +11,7 @@ export async function handleLiveLectureAudio(req, res) {
     if (!text || !text.trim()) {
       return res.json({ status: "empty" });
     }
-
+    console.log("Transcribed text:", text);
     const result = await ingestLectureChunk({
       text,
       metadata: {
@@ -26,6 +26,7 @@ export async function handleLiveLectureAudio(req, res) {
     });
   } catch (error) {
     console.error("Live lecture error:", error);
+    console.log("Error details:", error.message, error.stack);
     res.status(500).json({ error: "Live lecture failed" });
   }
 }
