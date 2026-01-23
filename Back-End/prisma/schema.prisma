@@ -11,7 +11,6 @@ datasource db {
 }
 
 model User {
-<<<<<<< HEAD
   id             String   @id @default(uuid())
   email          String   @unique
   fullName       String
@@ -42,7 +41,7 @@ model Profile {
 model Material {
   id               String   @id @default(uuid())
   title            String
-  type             String // "pdf" | "ppt" | "text" ...
+  type             String   // "pdf" | "ppt" | "text" ...
   fileUrl          String
   fileHash         String   @unique
   universityName   String?
@@ -51,31 +50,4 @@ model Material {
   uploadedByUserId String
   isGlobal         Boolean  @default(false)
   createdAt        DateTime @default(now())
-=======
-  id              String   @id @default(uuid())
-  email           String   @unique
-  fullName        String
-  passwordHash    String
-  onboardingStep  Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  profile         Profile?
-}
-
-model Profile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id])
-  
-  // Step 1
-  educationLevel  String?
-  institutionName String?
-  
-  // Step 2
-  university      String?
-  department      String?
-  program         String?
-  yearOrSemester  String?
->>>>>>> 79ea37989d260f5625218766beece784aa750a7a
 }
