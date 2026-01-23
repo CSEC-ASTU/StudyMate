@@ -50,12 +50,26 @@ model Material {
   type             String   // "pdf" | "ppt" | "text" ...
   fileUrl          String
   fileHash         String   @unique
-  universityName   String?
-  courseName       String?
-  keywords         String[]
+
+  universityName   String
+  courseName       String
+  keywords         String?
+
   uploadedByUserId String
-  isGlobal         Boolean  @default(false)
+  isGlobal         Boolean  @default(true)
+
   createdAt        DateTime @default(now())
+
+  courses          CourseMaterial[]
+}
+
+model CourseMaterial {
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, materialId])
 }
 
 model Semester {
@@ -85,6 +99,7 @@ model Course {
   updatedAt   DateTime @updatedAt
 
   assessments Assessment[]
+  materials   CourseMaterial[]
   progress    CourseProgress?
 }
 
