@@ -21,11 +21,16 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+
 import AuthRoute from "./routes/auth.routes.js";
 import ProfileRoute from "./routes/profile.routes.js";
+import SemesterRoute from "./routes/semester.routes.js";
+import CourseRoute from "./routes/course.routes.js";
 
 app.use("/api/auth", AuthRoute);
 app.use("/api/profile", ProfileRoute);
 app.use("/api/lectures", LiveLectureRoute);
+app.use("/api/semesters", SemesterRoute);
+app.use("/api/courses", CourseRoute);
 
 export default app;  
