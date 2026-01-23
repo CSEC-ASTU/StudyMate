@@ -8,7 +8,7 @@ import summarizationPrompt from "../prompts/system/summarization.prompt.js";
  */
 export async function generateSessionSummary(sessionData) {
   const prompt = summarizationPrompt(sessionData);
-  const response = await runLLM(prompt);
+  const response = await runLLM(prompt, "summarization");
 
   try {
     return JSON.parse(response);

@@ -1,6 +1,6 @@
 // src/agents/quiz.agent.js
 import { runLLM } from "../services/llm.service.js";
-import quizPrompt from "../prompts/quiz.prompt.js";
+import quizPrompt from "../prompts/system/quiz.prompt.js";
 
 /**
  * Generate quiz questions for a highlight
@@ -10,7 +10,7 @@ import quizPrompt from "../prompts/quiz.prompt.js";
  */
 export async function generateQuiz(highlight, explanation) {
   const prompt = quizPrompt(highlight, explanation);
-  const response = await runLLM(prompt);
+  const response = await runLLM(prompt, "quiz");
   try {
     return JSON.parse(response);
   } catch (e) {
