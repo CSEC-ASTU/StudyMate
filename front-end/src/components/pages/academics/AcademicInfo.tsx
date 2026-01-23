@@ -17,7 +17,6 @@ import { ChevronRight } from 'lucide-react'
 import { z } from 'zod'
 import { create } from 'zustand'
 
-// Zod validation schema
 const academicInfoSchema = z.object({
   educationLevel: z.string().min(1, 'Education level is required'),
   institutionName: z.string()
@@ -25,7 +24,6 @@ const academicInfoSchema = z.object({
     .regex(/^[a-zA-Z\s]*$/, 'Institution name must contain only letters and spaces'),
 })
 
-// Zustand store for form state and validation
 interface AcademicInfoStore {
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
@@ -50,7 +48,6 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
   const [initialValidationDone, setInitialValidationDone] = useState(false)
   const { errors, setErrors, clearErrors } = useAcademicInfoStore()
 
-  // Validate fields when they change (after initial validation)
   useEffect(() => {
     if (initialValidationDone) {
       validateField('educationLevel', educationLevel)
@@ -124,11 +121,7 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
-    // Set initial validation flag
     setInitialValidationDone(true)
-    
-    // Mark all fields as touched
     const allTouched = {
       educationLevel: true,
       institutionName: true,
@@ -152,7 +145,6 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
 
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
-            {/* Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 Academic Information
@@ -161,10 +153,7 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                 Let's start by understanding your educational background
               </p>
             </div>
-
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Education Level */}
               <div className="space-y-2">
                 <Label htmlFor="education" className="text-sm font-medium text-foreground">
                   Education Level
@@ -193,8 +182,6 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                   <p className="text-xs text-destructive mt-1">{errors.educationLevel}</p>
                 )}
               </div>
-
-              {/* Institution Name */}
               <div className="space-y-2">
                 <Label htmlFor="institution" className="text-sm font-medium text-foreground">
                   Institution Name
@@ -215,8 +202,6 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                   <p className="text-xs text-destructive mt-1">{errors.institutionName}</p>
                 )}
               </div>
-
-              {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={isLoading || !isComplete}
@@ -229,8 +214,6 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                 )}
               </Button>
             </form>
-
-            {/* Info Note */}
             <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
               <p className="text-xs text-muted-foreground">
                 This information helps us organize your courses and study plan effectively.

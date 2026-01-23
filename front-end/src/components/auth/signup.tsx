@@ -26,7 +26,6 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 })
 
-// Zustand store for form state and validation
 interface SignupStore {
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
@@ -59,18 +58,12 @@ export function SignupPage() {
       ...prev,
       [name]: value,
     }))
-
-    // Clear API error when user starts typing
     if (apiError) setApiError('')
-
-    // Check if passwords match
     if (name === 'confirmPassword') {
       setPasswordsMatch(value === formData.password)
     } else if (name === 'password') {
       setPasswordsMatch(formData.confirmPassword === value)
     }
-
-    // Validate field on change if it's been touched
     if (touched[name]) {
       validateField(name, value)
     }
@@ -85,7 +78,6 @@ export function SignupPage() {
   const validateField = (name: string, value: string) => {
     try {
       if (name === 'password') {
-        // Validate password requirements
         if (value.length < 8) {
           setErrors({ ...errors, password: 'Password must be at least 8 characters' })
         } else if (!/[A-Z]/.test(value)) {
@@ -100,14 +92,12 @@ export function SignupPage() {
           setErrors(newErrors)
         }
       } else if (name === 'email') {
-        // Validate email
         const emailSchema = z.string().email()
         emailSchema.parse(value)
         const newErrors = { ...errors }
         delete newErrors.email
         setErrors(newErrors)
       } else if (name === 'confirmPassword') {
-        // Validate password match
         if (value !== formData.password) {
           setErrors({ ...errors, confirmPassword: "Passwords don't match" })
         } else {
@@ -116,7 +106,6 @@ export function SignupPage() {
           setErrors(newErrors)
         }
       } else if (name === 'fullName') {
-        // Validate full name
         if (!value.trim()) {
           setErrors({ ...errors, fullName: 'Full name is required' })
         } else {
@@ -153,9 +142,7 @@ export function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
-    // Mark all fields as touched
-    const allTouched = {
+        const allTouched = {
       fullName: true,
       email: true,
       password: true,
@@ -169,17 +156,14 @@ export function SignupPage() {
     setApiError('')
 
     try {
-      // Use the correct backend URL
       const BACKEND_URL = 'https://studymate-api-vl93.onrender.com'
-      
-      // API call to signup endpoint with correct field name (fullName instead of name)
       const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fullName: formData.fullName, // Changed from 'name' to 'fullName'
+          fullName: formData.fullName, 
           email: formData.email,
           password: formData.password,
         }),
@@ -191,12 +175,9 @@ export function SignupPage() {
         throw new Error(data.error || data.message || 'Signup failed')
       }
 
-      // Store user data in localStorage
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user))
       }
-
-      // Redirect to dashboard/courses after successful account creation
       router.push('/academic')
       
     } catch (error: any) {
@@ -212,7 +193,6 @@ export function SignupPage() {
       <div className="w-full max-w-md">
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
-            {/* Header */}
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 Create Account
@@ -222,16 +202,13 @@ export function SignupPage() {
               </p>
             </div>
 
-            {/* API Error Message */}
             {apiError && (
               <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <p className="text-sm text-destructive text-center">{apiError}</p>
               </div>
             )}
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name Field */}
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-medium text-foreground">
                   Full Name
@@ -254,7 +231,6 @@ export function SignupPage() {
                 )}
               </div>
 
-              {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground">
                   Email Address
@@ -277,7 +253,6 @@ export function SignupPage() {
                 )}
               </div>
 
-              {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground">
                   Password
@@ -304,7 +279,6 @@ export function SignupPage() {
                 )}
               </div>
 
-              {/* Confirm Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
                   Confirm Password
@@ -341,7 +315,6 @@ export function SignupPage() {
                 ) : null}
               </div>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={isLoading || Object.keys(errors).length > 0 || !formData.password}
@@ -351,7 +324,6 @@ export function SignupPage() {
               </Button>
             </form>
 
-            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border"></div>
@@ -361,7 +333,6 @@ export function SignupPage() {
               </div>
             </div>
 
-            {/* Social Buttons */}
             <div className="grid grid-cols-2 gap-3">
               <Button
                 type="button"
@@ -391,7 +362,6 @@ export function SignupPage() {
               </Button>
             </div>
 
-            {/* Terms and Footer */}
             <p className="text-center text-xs text-muted-foreground mt-6">
               By signing up, you agree to our{' '}
               <Link href="/terms" className="text-primary hover:text-primary/80 transition">
@@ -403,7 +373,6 @@ export function SignupPage() {
               </Link>
             </p>
 
-            {/* Login Link */}
             <p className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{' '}
               <Link

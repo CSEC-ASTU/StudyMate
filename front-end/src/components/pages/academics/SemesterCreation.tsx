@@ -27,7 +27,6 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
     e.preventDefault()
     if (!semesterName || !startDate || !endDate) return
 
-    // Validate dates
     const start = new Date(startDate)
     const end = new Date(endDate)
     if (start >= end) {
@@ -47,12 +46,10 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Progress Indicator */}
 
 
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
-            {/* Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 Create Your Semester
@@ -62,7 +59,6 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
               </p>
             </div>
 
-            {/* Info Card */}
             <div className="mb-6 p-4 bg-primary/10 border border-primary/30 rounded-lg">
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
@@ -75,9 +71,7 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
               </div>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Semester Name */}
               <div className="space-y-2">
                 <Label htmlFor="semester" className="text-sm font-medium text-foreground">
                   Semester Name
@@ -93,7 +87,6 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
                 />
               </div>
 
-              {/* Start Date */}
               <div className="space-y-2">
                 <Label htmlFor="startDate" className="text-sm font-medium text-foreground">
                   Start Date
@@ -108,7 +101,6 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
                 />
               </div>
 
-              {/* End Date */}
               <div className="space-y-2">
                 <Label htmlFor="endDate" className="text-sm font-medium text-foreground">
                   End Date
@@ -122,8 +114,6 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
                   className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition"
                 />
               </div>
-
-              {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={isLoading || !isComplete}
@@ -136,8 +126,6 @@ export function SemesterCreation({ onComplete }: SemesterCreationProps) {
                 )}
               </Button>
             </form>
-
-            {/* Success Note */}
             <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
               <p className="text-xs text-muted-foreground">
                 After creating your semester, you'll be able to add your courses and start planning your study schedule.

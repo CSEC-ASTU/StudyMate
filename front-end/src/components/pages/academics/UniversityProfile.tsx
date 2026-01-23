@@ -171,7 +171,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    // Mark all fields as touched
     const allTouched = {
       university: true,
       department: true,
@@ -202,12 +201,10 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Progress Indicator */}
         
 
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
-            {/* Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 University Profile
@@ -217,9 +214,7 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* University */}
               <div className="space-y-2">
                 <Label htmlFor="university" className="text-sm font-medium text-foreground">
                   University <span className="text-destructive">*</span>
@@ -241,7 +236,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
                 )}
               </div>
 
-              {/* Department */}
               <div className="space-y-2">
                 <Label htmlFor="department" className="text-sm font-medium text-foreground">
                   Department <span className="text-destructive">*</span>
@@ -263,7 +257,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
                 )}
               </div>
 
-              {/* Program */}
               <div className="space-y-2">
                 <Label htmlFor="program" className="text-sm font-medium text-foreground">
                   Program <span className="text-destructive">*</span>
@@ -285,7 +278,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
                 )}
               </div>
 
-              {/* Year/Semester */}
               <div className="space-y-2">
                 <Label htmlFor="year" className="text-sm font-medium text-foreground">
                   Year / Semester <span className="text-destructive">*</span>
@@ -307,7 +299,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
                 )}
               </div>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={isSubmitDisabled}
@@ -322,7 +313,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
 
             </form>
 
-            {/* Info Note */}
             <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
               <p className="text-xs text-muted-foreground">
                 You can update these details later anytime from your profile settings.

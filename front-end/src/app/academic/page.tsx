@@ -30,12 +30,9 @@ export default function AcademicOnboardingPage() {
       educationLevel: data.educationLevel,
       institutionName: data.institutionName,
     }))
-    
-    // Check if University Profile should be shown
     if (data.educationLevel === 'undergraduate' || data.educationLevel === 'graduate') {
       setCurrentStep(2)
     } else {
-      // Skip University Profile for High School
       setCurrentStep(3)
     }
   }
@@ -68,9 +65,7 @@ export default function AcademicOnboardingPage() {
       endDate: data.endDate,
     }))
     
-    // Save all data and redirect to add course
     console.log('[v0] Onboarding complete:', { ...onboardingData, ...data })
-    // Redirect to add course page
     window.location.href = '/courses/add'
   }
 
