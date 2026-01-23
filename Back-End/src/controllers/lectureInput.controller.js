@@ -18,8 +18,6 @@ export async function handleLiveLectureAudio(req, res) {
       return res.json({ status: "empty" });
     }
 
-    console.log("Transcribed:", text);
-    console.log("lecture_id: ", req.body.lecture_id);
 
     // 2️⃣ Send to main pipeline
     const result = await processTranscriptChunk({

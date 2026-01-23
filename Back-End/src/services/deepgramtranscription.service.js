@@ -25,8 +25,6 @@ export async function transcribeAudioChunk(audioBuffer, mimeType) {
     
     const transcript = response.result?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
 
-    console.log("Deepgram transcript:", response, "-->", transcript);
-
     return transcript || "";
   } catch (error) {
     console.error("Deepgram transcription error:", error);
