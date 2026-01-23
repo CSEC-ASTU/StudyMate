@@ -4,6 +4,8 @@ import helmet from "helmet";
 import multer from "multer";
 import { config } from "./config/server.js";
 import LiveLectureRoute from "./routes/lecture.routes.js";
+import uploadRoute from "./routes/upload.routes.js";
+
 
 const app = express();
 
@@ -21,5 +23,6 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/lectures", LiveLectureRoute);
+app.use("/api/upload", uploadRoute);
 
 export default app;  
