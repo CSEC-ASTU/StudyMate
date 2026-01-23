@@ -28,7 +28,9 @@
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.3",
+    "@huggingface/inference": "^4.13.10",
     "@langchain/langgraph": "^1.1.0",
+    "@qdrant/js-client-rest": "^1.16.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

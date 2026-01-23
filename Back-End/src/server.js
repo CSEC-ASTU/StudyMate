@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import app from "./app.js";
 import { config } from "./config/server.js";
+import { initQdrant } from "./config/qdrant.init.js";
 
 const port = Number(config.server.port) || 3000;
 const environment = config.server.environment;
@@ -11,6 +12,7 @@ if (!fs.existsSync(tmpDir)) {
   fs.mkdirSync(tmpDir, { recursive: true });
 }
 
+await initQdrant();
 const server = app.listen(port, () => {
   console.log(`Server running on port ${port} (${environment})`);
 });
