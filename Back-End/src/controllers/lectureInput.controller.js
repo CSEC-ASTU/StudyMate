@@ -1,59 +1,31 @@
 import { transcribeAudioChunk } from "../services/deepgramtranscription.service.js";
-import lectureBufferService from "../services/lectureBuffer.service.js";
+import { ingestLectureChunk } from "../services/rag/ingestStream.service.js";
 
 export async function handleLiveLectureAudio(req, res) {
   try {
-    const audioBuffer = req.file.buffer; // from multer
+    const audioBuffer = req.file.buffer;
     const mimeType = req.file.mimetype;
 
     const text = await transcribeAudioChunk(audioBuffer, mimeType);
 
+    if (!text || !text.trim()) {
+      return res.json({ status: "empty" });
+    }
+
+    const result = await ingestLectureChunk({
+      text,
+      metadata: {
+        lecture_id: req.body.lecture_id,
+        course_id: req.body.course_id,
+      },
+    });
+
     res.json({
-      success: true,
       transcript: text,
-      timestamp: Date.now(),
+      ingestion: result.status,
     });
   } catch (error) {
-    console.error("Transcription error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to transcribe audio chunk",
-    });
-  }
-}
-
-
-//additional
-export async function handleTextChunk(req, res) {
-  try {
-    const { text } = req.body;
-
-    if (!text) {
-      return res.status(400).json({
-        success: false,
-        message: "No text provided",
-      });
-    }
-
-    lectureBufferService.addChunk(text);
-
-    const fullText = lectureBufferService.flushIfReady();
-
-    if (fullText) {
-      return res.status(200).json({
-        status: "ready",
-        fullText,
-      });
-    }
-
-    return res.status(200).json({
-      status: "buffering",
-    });
-  } catch (error) {
-    console.error("Buffering error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to process text chunk",
-    });
+    console.error("Live lecture error:", error);
+    res.status(500).json({ error: "Live lecture failed" });
   }
 }
