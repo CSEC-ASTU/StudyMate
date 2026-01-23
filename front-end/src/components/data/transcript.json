@@ -1,0 +1,27 @@
+[
+    {
+        "id": "1",
+        "type": "transcript",
+        "content": "Hello, welcome to the **voice transcription** demo!"
+    },
+    {
+        "id": "2",
+        "type": "response",
+        "content": "## Getting Started\n\nThis is a *real-time* audio streaming application.\n\n- Real-time audio capture\n- WebM/Opus format"
+    },
+    {
+        "id": "3",
+        "type": "code",
+        "content": "```ts\nconst sendAudioChunk = async (blob: Blob) => {\n  const formData = new FormData();\n  formData.append('audio', blob);\n  await fetch('/api/transcribe', { method: 'POST', body: formData });\n};\n```"
+    },
+    {
+        "id": "4",
+        "type": "info",
+        "content": "### Supported Features\n\n- Markdown\n- Code blocks\n- Tables"
+    },
+    {
+        "id": "5",
+        "type": "info",
+        "content": "# ✅ Solved Integration Example\n\n## Example: Solve the integral\n\n\\[\\\n\\int (3x^2 - 4x + 5)\\,dx\n\\]\n\n---\n\n## 🔹 Step 1: Integration Rules Used\n\n- \\(\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C\\)\n- \\(\\int k \\, dx = kx + C\\)\n\n---\n\n## 🔹 Step 2: Integrate Term by Term\n\n### 1️⃣ First Term\n\\[\n\\int 3x^2 \\, dx = 3 \\cdot \\frac{x^3}{3} = x^3\n\\]\n\n### 2️⃣ Second Term\n\\[\n\\int (-4x) \\, dx = -4 \\cdot \\frac{x^2}{2} = -2x^2\n\\]\n\n### 3️⃣ Third Term\n\\[\n\\int 5 \\, dx = 5x\n\\]\n\n---\n\n## 🔹 Step 3: Combine All Results\n\n\\[\n\\boxed{x^3 - 2x^2 + 5x + C}\n\\]\n\n---\n\n## ✅ Final Answer\n\n\\[\n\\int (3x^2 - 4x + 5)\\,dx = x^3 - 2x^2 + 5x + C\n\\]\n\n---\n\n### 📌 Exam Notes\n- Always include the constant of integration **(+C)**\n- Integrate each term separately\n- Increase the power by **1**, then divide"
+    }
+]
