@@ -50,3 +50,16 @@ export const createCourseSchema = z.object({
     creditHours: z.number().nonnegative().optional().or(z.string().regex(/^\d+(\.\d+)?$/).transform(Number)),
   }),
 });
+
+export const createAssessmentSchema = z.object({
+  body: z.object({
+    type: z.enum(["quiz", "test", "exam"]),
+    title: z.string().min(1, 'Title is required'),
+    mark: z.number().nonnegative(),
+    maxMark: z.number().positive(),
+    takenAt: z.coerce.date().optional(),
+  }).refine((data) => data.mark <= data.maxMark, {
+    message: "Mark cannot exceed max mark",
+    path: ["mark"],
+  }),
+});
