@@ -25,22 +25,37 @@ model User {
   courses         Course[]
   assessments     Assessment[]
   semesterAnalyses SemesterAnalysis[]
+
 }
 
 model Profile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id])
-  
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
   // Step 1
   educationLevel  String?
   institutionName String?
-  
+
   // Step 2
-  university      String?
-  department      String?
-  program         String?
-  yearOrSemester  String?
+  university     String?
+  department     String?
+  program        String?
+  yearOrSemester String?
+}
+
+model Material {
+  id               String   @id @default(uuid())
+  title            String
+  type             String   // "pdf" | "ppt" | "text" ...
+  fileUrl          String
+  fileHash         String   @unique
+  universityName   String?
+  courseName       String?
+  keywords         String[]
+  uploadedByUserId String
+  isGlobal         Boolean  @default(false)
+  createdAt        DateTime @default(now())
 }
 
 model Semester {
