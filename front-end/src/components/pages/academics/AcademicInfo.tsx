@@ -1,7 +1,7 @@
 'use client'
 
 import React from "react"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,21 +47,24 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
   const [institutionName, setInstitutionName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [initialValidationDone, setInitialValidationDone] = useState(false)
   const { errors, setErrors, clearErrors } = useAcademicInfoStore()
+
+  // Validate fields when they change (after initial validation)
+  useEffect(() => {
+    if (initialValidationDone) {
+      validateField('educationLevel', educationLevel)
+      validateField('institutionName', institutionName)
+    }
+  }, [educationLevel, institutionName, initialValidationDone])
 
   const handleEducationLevelChange = (value: string) => {
     setEducationLevel(value)
-    if (touched.educationLevel) {
-      validateField('educationLevel', value)
-    }
   }
 
   const handleInstitutionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setInstitutionName(value)
-    if (touched.institutionName) {
-      validateField('institutionName', value)
-    }
   }
 
   const handleBlur = (field: string, value: string) => {
@@ -122,6 +125,9 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
+    // Set initial validation flag
+    setInitialValidationDone(true)
+    
     // Mark all fields as touched
     const allTouched = {
       educationLevel: true,
@@ -173,7 +179,7 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                   }}
                 >
                   <SelectTrigger className={`w-full px-4 py-2.5 bg-input border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:border-primary transition ${
-                    errors.educationLevel ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
+                    (initialValidationDone || touched.educationLevel) && errors.educationLevel ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
                   }`}>
                     <SelectValue placeholder="Select your education level" />
                   </SelectTrigger>
@@ -183,7 +189,7 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                     <SelectItem value="graduate">Graduate</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.educationLevel && (
+                {(initialValidationDone || touched.educationLevel) && errors.educationLevel && (
                   <p className="text-xs text-destructive mt-1">{errors.educationLevel}</p>
                 )}
               </div>
@@ -202,10 +208,10 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                   onBlur={() => handleBlur('institutionName', institutionName)}
                   required
                   className={`w-full px-4 py-2.5 bg-input border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-primary transition ${
-                    errors.institutionName ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
+                    (initialValidationDone || touched.institutionName) && errors.institutionName ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
                   }`}
                 />
-                {errors.institutionName && (
+                {(initialValidationDone || touched.institutionName) && errors.institutionName && (
                   <p className="text-xs text-destructive mt-1">{errors.institutionName}</p>
                 )}
               </div>

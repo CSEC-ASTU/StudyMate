@@ -11,6 +11,9 @@ export const config = {
     timeout: parseInt(process.env.REQUEST_TIMEOUT) || 30000,
     maxRetries: parseInt(process.env.MAX_RETRIES) || 3
   },
+  huggingface: {
+    token: process.env.HF_TOKEN
+  },
   rateLimit: {
     window: parseInt(process.env.RATE_LIMIT_WINDOW) || 15,
     max: parseInt(process.env.RATE_LIMIT_MAX) || 100

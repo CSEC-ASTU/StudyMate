@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import multer from "multer";
+import RagRoute from "./routes/rag.routes.js";
+
+
 import { config } from "./config/server.js";
 import { ensureDBAwake } from './middleware/dbMiddleware.js';
 import { wakeNeonDB } from './utils/dbWakeUp.js';
@@ -28,6 +31,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -36,6 +40,7 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+<<<<<<< HEAD
 // Wake DB endpoint (manual trigger)
 app.post('/api/wake-db', async (req, res) => {
   try {
@@ -67,3 +72,10 @@ app.use("/api", AnalysisRoute);
 
 
 export default app;
+=======
+app.use("/api/rag", RagRoute);
+app.use("/api/lectures", LiveLectureRoute);
+
+
+export default app;  
+>>>>>>> ea53aa4 (Add Serper API service, update GoogleSearch nodes, fix app and server)

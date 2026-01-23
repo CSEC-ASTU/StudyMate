@@ -44,7 +44,6 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "googleapis": "^170.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.23",
@@ -54,8 +53,12 @@
     "officeparser": "^6.0.4",
     "openai": "^6.16.0",
     "pdfjs-dist": "^5.4.530",
+<<<<<<< HEAD
     "pptx-parser": "^1.1.7-beta.9",
     "prisma": "^6.19.2",
+=======
+    "pptx-text-parser": "^1.1.1",
+>>>>>>> ea53aa4 (Add Serper API service, update GoogleSearch nodes, fix app and server)
     "socket.io": "^4.8.3",
     "uuid": "^13.0.0",
     "ws": "^8.19.0",
