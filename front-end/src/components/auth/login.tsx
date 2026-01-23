@@ -7,113 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import Image from 'next/image'
-import { z } from 'zod'
-import { create } from 'zustand'
-
-// Zod validation schema
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-})
-
-// Zustand store for form state and validation
-interface LoginStore {
-  errors: Record<string, string>
-  setErrors: (errors: Record<string, string>) => void
-  clearErrors: () => void
-}
-
-const useLoginStore = create<LoginStore>((set) => ({
-  errors: {},
-  setErrors: (errors) => set({ errors }),
-  clearErrors: () => set({ errors: {} }),
-}))
-
 export function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [touched, setTouched] = useState<Record<string, boolean>>({})
-  const { errors, setErrors, clearErrors } = useLoginStore()
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-
-    // Validate field on change if it's been touched
-    if (touched[name]) {
-      validateField(name, value)
-    }
-  }
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setTouched((prev) => ({ ...prev, [name]: true }))
-    validateField(name, value)
-  }
-
-  const validateField = (name: string, value: string) => {
-    try {
-      if (name === 'email') {
-        // Validate email
-        const emailSchema = z.string().email()
-        emailSchema.parse(value)
-        const newErrors = { ...errors }
-        delete newErrors.email
-        setErrors(newErrors)
-      } else if (name === 'password') {
-        // Validate password
-        if (!value.trim()) {
-          setErrors({ ...errors, password: 'Password is required' })
-        } else {
-          const newErrors = { ...errors }
-          delete newErrors.password
-          setErrors(newErrors)
-        }
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setErrors({ ...errors, [name]: error.issues[0].message })
-      }
-    }
-  }
-
-  const validateForm = () => {
-    try {
-      loginSchema.parse(formData)
-      clearErrors()
-      return true
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {}
-        error.issues.forEach((err) => {
-          if (err.path[0]) {
-            newErrors[err.path[0] as string] = err.message
-          }
-        })
-        setErrors(newErrors)
-      }
-      return false
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
-    // Mark all fields as touched
-    const allTouched = {
-      email: true,
-      password: true,
-    }
-    setTouched(allTouched)
-    
-    if (!validateForm()) return
-
     setIsLoading(true)
     // Handle login logic here
     setTimeout(() => setIsLoading(false), 1000)
@@ -143,20 +43,13 @@ export function LoginPage() {
                 </Label>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
                   placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  className={`w-full px-4 py-2.5 bg-input border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-primary transition ${
-                    errors.email ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
-                  }`}
+                  className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition"
                 />
-                {errors.email && (
-                  <p className="text-xs text-destructive mt-1">{errors.email}</p>
-                )}
               </div>
 
               {/* Password Field */}
@@ -174,26 +67,19 @@ export function LoginPage() {
                 </div>
                 <Input
                   id="password"
-                  name="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
-                  className={`w-full px-4 py-2.5 bg-input border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-primary transition ${
-                    errors.password ? 'border-destructive focus:ring-destructive/50' : 'border-border focus:ring-primary/50'
-                  }`}
+                  className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition"
                 />
-                {errors.password && (
-                  <p className="text-xs text-destructive mt-1">{errors.password}</p>
-                )}
               </div>
 
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isLoading || Object.keys(errors).length > 0}
+                disabled={isLoading}
                 className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Logging in...' : 'Login'}
@@ -215,6 +101,7 @@ export function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
+
                 className="border border-border bg-muted hover:bg-muted/80 text-foreground font-medium py-2 rounded-lg transition"
               >
                 <Image
