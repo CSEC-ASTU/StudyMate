@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +40,7 @@ const useSignupStore = create<SignupStore>((set) => ({
 }))
 
 export function SignupPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -161,7 +163,11 @@ export function SignupPage() {
 
     setIsLoading(true)
     // Handle signup logic here
-    setTimeout(() => setIsLoading(false), 1000)
+    setTimeout(() => {
+      setIsLoading(false)
+      // Redirect to academic router after successful account creation
+      router.push('/academic')
+    }, 1000)
   }
 
   return (
