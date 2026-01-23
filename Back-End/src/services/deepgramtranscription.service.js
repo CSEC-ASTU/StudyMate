@@ -11,6 +11,7 @@ const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
  * @returns {Promise<string>} transcribed text
  */
 export async function transcribeAudioChunk(audioBuffer, mimeType) {
+  console.log("Transcribing audio chunk with Deepgram...");
   try {
     const response = await deepgram.listen.prerecorded.transcribeFile(
       audioBuffer,
@@ -24,6 +25,7 @@ export async function transcribeAudioChunk(audioBuffer, mimeType) {
     
     const transcript = response.result?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
 
+    console.log("Deepgram transcript:", response, "-->", transcript);
 
     return transcript || "";
   } catch (error) {
