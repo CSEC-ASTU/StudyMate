@@ -15,6 +15,8 @@ import AssessmentRoute from "./routes/assessment.routes.js";
 import AnalysisRoute from "./routes/analysis.routes.js";
 import LiveLectureRoute from "./routes/lecture.routes.js";
 import uploadRoute from "./routes/upload.routes.js";
+import materialRoutes from './routes/material.routes.js';
+import ragRoutes from './routes/rag.routes.js';
 
 
 const app = express();
@@ -49,7 +51,7 @@ app.post('/api/wake-db', async (req, res) => {
 });
 
 // Apply DB wake-up middleware to all API routes
-app.use('/api', ensureDBAwake);
+// app.use('/api', ensureDBAwake);
 
 // Your routes
 app.use("/api/auth", AuthRoute);
@@ -58,6 +60,8 @@ app.use("/api/lectures", LiveLectureRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/semesters", SemesterRoute);
 app.use("/api/courses", CourseRoute);
+app.use("/api/materials", materialRoutes);
+app.use("/api/rag", ragRoutes);
 app.use("/api", AssessmentRoute); 
 app.use("/api", AnalysisRoute);
 
