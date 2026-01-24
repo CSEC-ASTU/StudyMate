@@ -20,16 +20,13 @@ import LiveLectureRoute from "./routes/lecture.routes.js";
 import uploadRoute from "./routes/upload.routes.js";
 import materialRoutes from './routes/material.routes.js';
 import ragRoutes from './routes/rag.routes.js';
-import cors from "cors";
+
 
 
 
 const app = express();
 
-app.use(cors({
-  origin: "https://studymateassistant.vercel.app",
-  credentials: true
-}));
+
 
 
 app.use(helmet());
