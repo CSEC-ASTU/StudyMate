@@ -23,7 +23,9 @@ export const signup = async (data) => {
     },
   });
 
-  return { user };
+  const token = generateToken({ id: user.id, email: user.email });
+
+  return { token, user };
 };
 
 export const login = async (data) => {
