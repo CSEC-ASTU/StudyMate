@@ -26,10 +26,17 @@ export function attachLectureStream({ lectureId, req, res }) {
     send("status", payload);
   };
 
+  const onDebug = (payload) => {
+    if (payload.lectureId !== lectureId) return;
+    res.write(`event: debug\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
   setInterval(() => {
     res.write("event: ping\ndata: { this is test ping}\n\n");
   }, 15000);
 
+  lectureEventEmitter.on("lecture.debug", onDebug);
   lectureEventEmitter.on("lecture.highlight", onHighlight);
   lectureEventEmitter.on("lecture.status", onStatus);
 
@@ -37,6 +44,7 @@ export function attachLectureStream({ lectureId, req, res }) {
   req.on("close", () => {
     lectureEventEmitter.off("lecture.highlight", onHighlight);
     lectureEventEmitter.off("lecture.status", onStatus);
+    lectureEventEmitter.off("lecture.debug", onDebug);
     res.end();
   });
 }

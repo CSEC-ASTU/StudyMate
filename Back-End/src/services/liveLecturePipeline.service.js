@@ -47,8 +47,15 @@ export async function processTranscriptChunk({
       timestampEnd: endTime,
     };
 
-    const highlightEvent =
-      await conceptClassifierAgent.processChunk(classifierInput);
+    const highlightEvent = await conceptClassifierAgent.processChunk(
+      classifierInput
+    );
+
+    lectureEventEmitter.emit("lecture.debug", {
+      lectureId: session.lectureId,
+      flushedText,
+      highlightEvent,
+    });
 
     if (highlightEvent?.highlight) {
       lectureEventEmitter.emit("lecture.highlight", highlightEvent);

@@ -36,6 +36,7 @@ export async function handleLiveLectureAudio(req, res) {
 
     res.status(500).json({
       error: "audio_pipeline_failed",
+      detail: err.message,
     });
   }
 }
