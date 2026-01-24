@@ -131,10 +131,13 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
     if (!validateForm()) return
 
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      await onNext({ educationLevel, institutionName })
+    } catch (error) {
+      console.error('Error in academic info submission:', error)
+    } finally {
       setIsLoading(false)
-      onNext({ educationLevel, institutionName })
-    }, 500)
+    }
   }
 
   const isComplete = educationLevel && institutionName && Object.keys(errors).length === 0
@@ -142,7 +145,6 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
             <div className="mb-8">
@@ -207,7 +209,12 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                 disabled={isLoading || !isComplete}
                 className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isLoading ? 'Continue...' : (
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
                   <>
                     Next <ChevronRight className="w-4 h-4" />
                   </>

@@ -182,18 +182,24 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
     if (!validateForm()) return
 
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      await onNext({ university, department, program, yearSemester })
+    } catch (error) {
+      console.error('Error in university profile submission:', error)
+    } finally {
       setIsLoading(false)
-      onNext({ university, department, program, yearSemester })
-    }, 500)
+    }
   }
 
   const handleSkip = async () => {
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      await onNext({ university: '', department: '', program: '', yearSemester: '' })
+    } catch (error) {
+      console.error('Error skipping university profile:', error)
+    } finally {
       setIsLoading(false)
-      onNext({ university: '', department: '', program: '', yearSemester: '' })
-    }, 500)
+    }
   }
 
   const isSubmitDisabled = isLoading || !university || !department || !program || !yearSemester || Object.keys(errors).length > 0
@@ -201,8 +207,6 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        
-
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
             <div className="mb-8">
@@ -302,15 +306,32 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
               <Button
                 type="submit"
                 disabled={isSubmitDisabled}
-                className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isLoading ? 'Continue...' : (
+                {isLoading ? (
                   <>
-                    Next <ChevronRight className="w-4 h-4" />
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Complete Onboarding <ChevronRight className="w-4 h-4" />
                   </>
                 )}
               </Button>
 
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSkip}
+                  disabled={isLoading}
+                  className="w-full text-muted-foreground hover:text-foreground"
+                >
+                  <SkipForward className="w-4 h-4 mr-2" />
+                  Skip for now
+                </Button>
+              </div>
             </form>
 
             <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
