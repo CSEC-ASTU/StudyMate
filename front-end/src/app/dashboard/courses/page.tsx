@@ -1,7 +1,7 @@
 // app/components/pages/dashboard/CoursesPage.tsx
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CourseCard } from "@/components/pages/dashboard/CourseCard";
 import { AddCourseDialog } from "@/components/pages/dashboard/AddCourseDialog";
 import { useSearchParams } from "next/navigation";
@@ -33,6 +33,36 @@ interface Semester {
     courses: number;
   };
 }
+
+// Loading skeleton component
+const CourseSkeleton = () => (
+  <Card className="border-border bg-background">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
+      <div className="mt-3 space-y-2">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-1/4" />
+      </div>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <Skeleton className="h-4 w-2/3" />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-12" />
+        </div>
+        <Skeleton className="h-2 w-full" />
+      </div>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -133,111 +163,35 @@ export default function CoursesPage() {
     console.log("Course added successfully");
   };
 
-  // Loading skeleton component
-  const CourseSkeleton = () => (
-    <Suspense>
-      <Card className="border-border bg-background">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <Skeleton className="h-10 w-10 rounded-lg" />
-            <Skeleton className="h-6 w-20 rounded-full" />
-          </div>
-          <div className="mt-3 space-y-2">
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-1/4" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-4 w-2/3" />
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-12" />
-            </div>
-            <Skeleton className="h-2 w-full" />
-          </div>
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-        </CardContent>
-      </Card>
-    </Suspense>
-  );
-
   if (loading) {
     return (
-      <Suspense>
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
-              <p className="text-muted-foreground">
-                <Skeleton className="h-4 w-48" />
-              </p>
-            </div>
-            <Skeleton className="h-10 w-32" />
+      <main className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
+            <p className="text-muted-foreground">
+              <Skeleton className="h-4 w-48" />
+            </p>
           </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <CourseSkeleton key={i} />
-            ))}
-          </div>
-        </main>
-      </Suspense>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <CourseSkeleton key={i} />
+          ))}
+        </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <Suspense>
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
-              <p className="text-muted-foreground">Error loading courses</p>
-            </div>
-            <AddCourseDialog
-              onCourseAdded={handleCourseAdded}
-              semesterId={semesterId || undefined}
-            />
-          </div>
-
-          <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-6 text-center">
-            <p className="text-destructive mb-2">Error: {error}</p>
-            <button
-              onClick={fetchCourses}
-              className="text-sm text-primary hover:underline"
-            >
-              Try again
-            </button>
-          </div>
-        </main>
-      </Suspense>
-    );
-  }
-
-  return (
-    <Suspense>
       <main className="flex-1 overflow-auto p-4 md:p-6">
-        {/* Header Actions */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
-            <p className="text-muted-foreground">
-              {semesterId ? (
-                <>Courses for selected semester</>
-              ) : (
-                <>
-                  You are enrolled in{" "}
-                  <span className="font-semibold text-foreground">
-                    {courses.length} courses
-                  </span>{" "}
-                  this semester
-                </>
-              )}
-            </p>
+            <p className="text-muted-foreground">Error loading courses</p>
           </div>
           <AddCourseDialog
             onCourseAdded={handleCourseAdded}
@@ -245,48 +199,86 @@ export default function CoursesPage() {
           />
         </div>
 
-        {/* Courses Grid */}
-        {courses.length === 0 ? (
-          <div className="rounded-lg border border-border bg-background p-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-              <BookOpen className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">No courses yet</h3>
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-6 text-center">
+          <p className="text-destructive mb-2">Error: {error}</p>
+          <button
+            onClick={fetchCourses}
+            className="text-sm text-primary hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex-1 overflow-auto p-4 md:p-6">
+      {/* Header Actions */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
+          <p className="text-muted-foreground">
+            {semesterId ? (
+              <>Courses for selected semester</>
+            ) : (
+              <>
+                You are enrolled in{" "}
+                <span className="font-semibold text-foreground">
+                  {courses.length} courses
+                </span>{" "}
+                this semester
+              </>
+            )}
+          </p>
+        </div>
+        <AddCourseDialog
+          onCourseAdded={handleCourseAdded}
+          semesterId={semesterId || undefined}
+        />
+      </div>
+
+      {/* Courses Grid */}
+      {courses.length === 0 ? (
+        <div className="rounded-lg border border-border bg-background p-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <BookOpen className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold">No courses yet</h3>
+          <p className="text-sm text-muted-foreground">
+            {semesterId
+              ? "This semester doesn't have any courses yet. Add your first course!"
+              : "You haven't enrolled in any courses yet. Add your first course!"}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {courses.map((course) => (
+              <CourseCard
+                key={course.id}
+                id={course.id}
+                name={course.name}
+                code={course.code}
+                creditHours={course.creditHours}
+                instructor={course.instructor}
+                progress={course.progress}
+                students={course.students}
+                nextClass={course.nextClass}
+              />
+            ))}
+          </div>
+
+          {/* Info Note */}
+          <div className="mt-6 rounded-lg border border-border bg-background p-4">
             <p className="text-sm text-muted-foreground">
-              {semesterId
-                ? "This semester doesn't have any courses yet. Add your first course!"
-                : "You haven't enrolled in any courses yet. Add your first course!"}
+              <span className="font-medium text-foreground">Tip:</span> Click on
+              any course to access livestream, take exams, or study with our AI
+              assistant.
             </p>
           </div>
-        ) : (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  id={course.id}
-                  name={course.name}
-                  code={course.code}
-                  creditHours={course.creditHours}
-                  instructor={course.instructor}
-                  progress={course.progress}
-                  students={course.students}
-                  nextClass={course.nextClass}
-                />
-              ))}
-            </div>
-
-            {/* Info Note */}
-            <div className="mt-6 rounded-lg border border-border bg-background p-4">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Tip:</span> Click
-                on any course to access livestream, take exams, or study with
-                our AI assistant.
-              </p>
-            </div>
-          </>
-        )}
-      </main>
-    </Suspense>
+        </>
+      )}
+    </main>
   );
 }

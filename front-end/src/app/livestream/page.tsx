@@ -10,12 +10,27 @@ import { useSearchParams } from "next/navigation";
 export default function LivestreamPage() {
   const searchParams = useSearchParams();
   const courseId = searchParams.get("courseId");
+  
+  // Add fallback to localStorage if courseId is not in URL
+  useEffect(() => {
+    if (!courseId) {
+      const storedCourseId = localStorage.getItem("currentCourseId");
+      if (storedCourseId) {
+        console.log("[PAGE] Using courseId from localStorage:", storedCourseId);
+        // You might want to update the URL or handle this differently
+      }
+    } else {
+      // Store courseId in localStorage for persistence
+      localStorage.setItem("currentCourseId", courseId);
+    }
+  }, [courseId]);
 
   const {
     isRecording,
     error,
     currentTime,
     lectureId,
+    chunksSent,
     startRecording,
     stopRecording,
     getAnalyser,
@@ -32,8 +47,15 @@ export default function LivestreamPage() {
       stopRecording();
     } else {
       if (!courseId) {
-        alert("Course ID is missing. Please check the URL.");
-        return;
+        const storedCourseId = localStorage.getItem("currentCourseId");
+        if (storedCourseId) {
+          // You could redirect or use the stored courseId
+          console.log("[PAGE] Would use stored courseId:", storedCourseId);
+          alert("Using course from previous session. Starting recording...");
+        } else {
+          alert("Please select a course first or check the URL for courseId parameter.");
+          return;
+        }
       }
       startRecording();
     }
@@ -52,7 +74,7 @@ export default function LivestreamPage() {
     const container = transcriptContainerRef.current;
     const { scrollTop, scrollHeight, clientHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    const isNearBottom = distanceFromBottom < 50; // Reduced threshold
+    const isNearBottom = distanceFromBottom < 50;
 
     setAutoScroll(isNearBottom);
     setShowScrollButton(!isNearBottom);
@@ -66,21 +88,17 @@ export default function LivestreamPage() {
     const container = transcriptContainerRef.current;
     const endMarker = document.getElementById("transcript-end");
 
-    // Clear any existing timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Use requestAnimationFrame for smooth scrolling
     const scroll = () => {
       if (endMarker) {
-        // Scroll to the end marker
         endMarker.scrollIntoView({
           behavior: instant ? "auto" : "smooth",
           block: "end",
         });
       } else {
-        // Fallback to scrollHeight
         container.scrollTop = container.scrollHeight;
       }
 
@@ -88,49 +106,13 @@ export default function LivestreamPage() {
       setShowScrollButton(false);
     };
 
-    // Small delay to ensure DOM is updated
     scrollTimeoutRef.current = setTimeout(scroll, 50);
   }, []);
 
-  // Track entries count for the effect above
-  const [entriesCount, setEntriesCount] = useState(0);
-
-  // Auto-scroll when new content appears (more aggressive)
+  // Auto-scroll when new content appears
   useEffect(() => {
     if (isRecording && autoScroll) {
       scrollToBottom();
-    }
-  }, [isRecording, entriesCount, autoScroll, scrollToBottom]); // Watch for entries count
-
-  // This effect runs when entries update in TranscriptPanel
-  useEffect(() => {
-    // This is a hack to detect when TranscriptPanel updates
-    // In a real app, you might want to lift the state up or use context
-    const checkForUpdates = () => {
-      const transcriptEntries = document.querySelectorAll(".markdown-content");
-      if (transcriptEntries.length !== entriesCount) {
-        setEntriesCount(transcriptEntries.length);
-      }
-    };
-
-    const interval = setInterval(checkForUpdates, 100);
-    return () => clearInterval(interval);
-  }, [entriesCount]);
-
-  // Auto-scroll on mount and when recording starts
-  useEffect(() => {
-    if (isRecording) {
-      // Initial scroll to bottom with a bit more delay
-      setTimeout(() => scrollToBottom(true), 200);
-
-      // Set up periodic checks for new content
-      const scrollInterval = setInterval(() => {
-        if (autoScroll && Date.now() - lastScrollTime.current > 300) {
-          scrollToBottom();
-        }
-      }, 500);
-
-      return () => clearInterval(scrollInterval);
     }
   }, [isRecording, autoScroll, scrollToBottom]);
 
@@ -161,13 +143,6 @@ export default function LivestreamPage() {
     };
   }, []);
 
-  // Show warning if courseId is missing
-  useEffect(() => {
-    if (!courseId) {
-      console.error("Course ID is missing from URL");
-    }
-  }, [courseId]);
-
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Main container */}
@@ -180,17 +155,42 @@ export default function LivestreamPage() {
             scrollBehavior: "smooth",
           }}
         >
-          <TranscriptPanel isRecording={isRecording} lectureId={lectureId} />
+          <TranscriptPanel 
+            isRecording={isRecording} 
+            lectureId={lectureId} 
+          />
         </div>
 
-        {/* Lecture ID Display - Only when recording */}
-        {isRecording && lectureId && (
-          <div className="fixed top-4 left-4 z-40 px-3 py-1.5 bg-black/50 text-xs text-white/80 rounded-md backdrop-blur-sm">
-            Lecture ID: {lectureId.substring(0, 8)}...
+        {/* Status Bar - Shows multiple pieces of info */}
+        <div className="fixed top-4 left-4 right-4 flex justify-between items-start z-40">
+          <div className="flex flex-col gap-1">
+            {/* Lecture ID Display */}
+            {isRecording && lectureId && (
+              <div className="px-3 py-1.5 bg-black/70 text-xs text-white/90 rounded-md backdrop-blur-sm max-w-xs truncate">
+                <div className="font-medium">Lecture ID:</div>
+                <div className="font-mono">{lectureId.substring(0, 8)}...</div>
+              </div>
+            )}
+            
+            {/* Course ID Display */}
+            {courseId && (
+              <div className="px-3 py-1.5 bg-blue-900/50 text-xs text-blue-200 rounded-md backdrop-blur-sm max-w-xs truncate">
+                <div className="font-medium">Course ID:</div>
+                <div className="font-mono">{courseId.substring(0, 8)}...</div>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Scroll to bottom button - Responsive positioning */}
+          {/* Chunks sent counter */}
+          {isRecording && (
+            <div className="px-3 py-1.5 bg-green-900/50 text-xs text-green-200 rounded-md backdrop-blur-sm">
+              <div className="font-medium">Chunks Sent:</div>
+              <div className="text-center font-bold">{chunksSent}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Scroll to bottom button */}
         {showScrollButton && (
           <button
             onClick={() => scrollToBottom()}
@@ -217,7 +217,7 @@ export default function LivestreamPage() {
         {/* Bottom Section - Visualizer & Controls */}
         <div className="shrink-0 relative flex items-end justify-center pb-4 md:pb-6">
           <div className="fixed bottom-0 max-w-4xl w-full h-28 md:h-32 rounded-t-2xl md:rounded-2xl border mb-4 md:mb-8 dark:bg-[#1d1d1d] bg-[#fff8f8] px-4 md:px-0">
-            {/* Wave Visualizer - only shown when recording */}
+            {/* Wave Visualizer */}
             {isRecording && (
               <div className="absolute inset-0">
                 <WaveVisualizer
@@ -229,7 +229,7 @@ export default function LivestreamPage() {
 
             {/* Center content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-3 md:p-4">
-              {/* Recording status - shown above button when recording */}
+              {/* Recording status */}
               {isRecording && (
                 <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-4 text-xs md:text-sm">
                   <div className="flex items-center gap-1.5 md:gap-2">
@@ -242,23 +242,22 @@ export default function LivestreamPage() {
                 </div>
               )}
 
-              {/* Mic Button - Responsive sizing */}
+              {/* Mic Button */}
               <button
                 type="button"
                 onClick={handleToggle}
-                disabled={!courseId && !isRecording}
+                disabled={!courseId && !isRecording && !localStorage.getItem("currentCourseId")}
                 className={`
                   relative flex items-center justify-center
                   w-12 h-12 md:w-14 md:h-14 rounded-full
                   transition-all duration-300 ease-out
-                  cursor-pointer
                   border-2 backdrop-blur-sm
                   ${
                     isRecording
-                      ? "bg-red-500/10 border-red-500 hover:bg-red-500/20"
-                      : !courseId
-                        ? "bg-gray-500/10 border-gray-500 cursor-not-allowed"
-                        : "bg-primary/10 border-primary hover:bg-primary/20"
+                      ? "bg-red-500/10 border-red-500 hover:bg-red-500/20 cursor-pointer"
+                      : (!courseId && !localStorage.getItem("currentCourseId"))
+                      ? "bg-gray-500/10 border-gray-500 cursor-not-allowed opacity-50"
+                      : "bg-primary/10 border-primary hover:bg-primary/20 cursor-pointer"
                   }
                 `}
                 style={{
@@ -275,26 +274,36 @@ export default function LivestreamPage() {
                 )}
               </button>
 
-              {/* Tap to start text - only when not recording */}
+              {/* Instructions text */}
               {!isRecording && (
                 <div className="text-center mt-3 md:mt-4">
-                  {!courseId ? (
-                    <p className="text-destructive text-xs md:text-sm">
-                      Missing course ID in URL
-                    </p>
+                  {(!courseId && !localStorage.getItem("currentCourseId")) ? (
+                    <div className="space-y-1">
+                      <p className="text-destructive text-xs md:text-sm font-medium">
+                        No course selected
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        Please select a course first
+                      </p>
+                    </div>
                   ) : (
-                    <p className="text-muted-foreground text-xs md:text-sm">
-                      Tap to start recording
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground text-xs md:text-sm">
+                        Tap to start recording
+                      </p>
+                      <p className="text-muted-foreground/70 text-xs">
+                        Audio chunks sent every 5 seconds
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Error Display - Responsive */}
+              {/* Error Display */}
               {error && (
                 <div className="mt-3 md:mt-4 px-3 py-1.5 md:px-4 md:py-2 bg-destructive/10 rounded-lg border border-destructive/30 backdrop-blur-sm max-w-[90vw]">
-                  <p className="text-xs text-destructive text-center">
-                    {error}
+                  <p className="text-xs text-destructive text-center font-medium">
+                    Error: {error}
                   </p>
                 </div>
               )}
@@ -302,9 +311,9 @@ export default function LivestreamPage() {
           </div>
         </div>
 
-        {/* Footer - Responsive */}
+        {/* Footer */}
         <div className="fixed bottom-0 w-full max-w-4xl flex justify-center text-[10px] xs:text-xs text-muted-foreground bg-background/80 backdrop-blur-sm p-1.5 md:p-2 px-4 md:px-0">
-          <p>Powered by StudyMate</p>
+          <p>Powered by StudyMate • Audio processed in real-time</p>
         </div>
       </div>
 
@@ -324,7 +333,7 @@ export default function LivestreamPage() {
           --primary-glow: 40, 40, 50;
         }
 
-        /* Custom scrollbar - Responsive */
+        /* Custom scrollbar */
         * {
           scrollbar-width: thin;
           scrollbar-color: rgba(var(--primary-glow), 0.2) transparent;
@@ -357,34 +366,6 @@ export default function LivestreamPage() {
         /* Ensure smooth scrolling */
         .scroll-smooth {
           -webkit-overflow-scrolling: touch;
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 640px) {
-          .markdown-content {
-            font-size: 0.9375rem;
-            line-height: 1.5;
-          }
-
-          .markdown-content h1,
-          .markdown-content h2,
-          .markdown-content h3 {
-            font-size: 1.125rem;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-          }
-
-          .markdown-content p {
-            margin-bottom: 0.75rem;
-          }
-        }
-
-        /* Tablet optimizations */
-        @media (min-width: 641px) and (max-width: 1024px) {
-          .markdown-content {
-            font-size: 1rem;
-            line-height: 1.6;
-          }
         }
       `}</style>
     </div>

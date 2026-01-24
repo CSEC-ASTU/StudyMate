@@ -11,6 +11,19 @@ interface AudioRecorderState {
   lectureId: string | null;
 }
 
+interface AudioChunkResult {
+  success: boolean;
+  chunkNumber: number;
+  data?: {
+    transcript: string;
+    highlights: string[];
+    concepts: string[];
+    ragStatus: string;
+    highlightEmitted: boolean;
+  };
+  error?: string;
+}
+
 export function useAudioRecorder(courseId: string) {
   const [state, setState] = useState<AudioRecorderState>({
     isRecording: false,
@@ -29,22 +42,37 @@ export function useAudioRecorder(courseId: string) {
   const timeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const currentLectureIdRef = useRef<string | null>(null); // Added ref to track lectureId
-  const chunkCountRef = useRef<number>(0); // Added ref to track chunk count
+  const audioQueueRef = useRef<Array<{ blob: Blob; chunkNumber: number }>>([]);
+  const isProcessingRef = useRef<boolean>(false);
+  const isActiveRef = useRef<boolean>(false);
+  const chunkCountRef = useRef<number>(0);
+  const startTimeRef = useRef<number>(0);
 
   // Function to start lecture session
-  const startLectureSession = useCallback(async () => {
+  const startLectureSession = useCallback(async (): Promise<string> => {
     try {
       const userRaw = localStorage.getItem("user");
       const user = userRaw ? JSON.parse(userRaw) : null;
       const userId = user?.id;
 
+      const token = localStorage.getItem("token");
+
+      if (!userId) {
+        throw new Error("User ID not found. Please log in again.");
+      }
+
+      if (!token) {
+        throw new Error("Authentication token not found. Please log in again.");
+      }
+
+      console.log("[API] Starting lecture session...");
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/lectures/start`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             userId: userId,
@@ -55,132 +83,323 @@ export function useAudioRecorder(courseId: string) {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to start lecture: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(
+          "[API] Failed to start lecture:",
+          response.status,
+          errorText,
+        );
+        throw new Error(
+          `Failed to start lecture: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
+      console.log("[API] Lecture started with ID:", data.lectureId);
       return data.lectureId;
     } catch (error) {
-      console.error("[v0] Failed to start lecture session:", error);
+      console.error("[API] Failed to start lecture session:", error);
       throw error;
     }
   }, [courseId]);
 
-  // Function to send audio chunk to backend
-  const sendAudioChunk = useCallback(
-    async (audioBlob: Blob, chunkNumber: number, lectureId: string) => {
+  // Function to process audio queue
+  const processAudioQueue = useCallback(async (lectureId: string) => {
+    if (isProcessingRef.current || audioQueueRef.current.length === 0) {
+      return;
+    }
+
+    isProcessingRef.current = true;
+
+    while (audioQueueRef.current.length > 0) {
+      const { blob, chunkNumber } = audioQueueRef.current.shift()!;
+
       try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("Authentication token not found");
+        }
+
+        console.log(`[API] Sending audio chunk #${chunkNumber}...`);
+
+        // Create FormData exactly like Postman
         const formData = new FormData();
-        formData.append("audio", audioBlob);
+
+        // IMPORTANT: Use the exact field name and format from Postman
+        formData.append("audio", blob, `chunk-${chunkNumber}.opus`);
         formData.append("lecture_id", lectureId);
+
+        // Log the audio blob details for debugging
+        console.log(`[API] Audio blob details:`, {
+          type: blob.type,
+          size: `${(blob.size / 1024).toFixed(2)} KB`,
+          lectureId: lectureId,
+        });
+
+        // Convert blob to array buffer to verify it has data
+        const arrayBuffer = await blob.arrayBuffer();
+        console.log(`[API] Audio data size: ${arrayBuffer.byteLength} bytes`);
+
+        if (arrayBuffer.byteLength === 0) {
+          console.warn(`[API] Audio chunk #${chunkNumber} is empty!`);
+          continue;
+        }
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/lectures/live/audio`,
           {
             method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
             body: formData,
           },
         );
 
+        console.log(`[API] Response status: ${response.status}`);
+
         if (!response.ok) {
-          throw new Error(`Failed to send audio chunk: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error(
+            `[API] Failed to send audio chunk #${chunkNumber}:`,
+            response.status,
+            errorText,
+          );
+
+          // Try to parse as JSON if possible
+          try {
+            const errorData = JSON.parse(errorText);
+            throw new Error(
+              `Server error: ${errorData.message || response.statusText}`,
+            );
+          } catch {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
         }
 
         const data = await response.json();
-        console.log(`[v0] Audio Chunk #${chunkNumber} sent successfully`);
-        console.log(`[v0] Transcript: ${data.transcript}`);
-        console.log(`[v0] Highlights: ${JSON.stringify(data.highlights)}`);
-        console.log(`[v0] Concepts: ${JSON.stringify(data.concepts)}`);
+        console.log(`[API] Audio Chunk #${chunkNumber} sent successfully`);
+        console.log(`[API] Response:`, data);
 
-        return { success: true, chunkNumber, data };
-      } catch (error) {
-        console.error(`[v0] Error sending audio chunk #${chunkNumber}:`, error);
-        return { success: false, chunkNumber, error };
-      }
-    },
-    [],
-  );
+        // Update chunks sent count
+        setState((prev) => ({ ...prev, chunksSent: chunkNumber }));
 
-  // Set up SSE connection for real-time updates
-  const setupSSEConnection = useCallback((lectureId: string) => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
+        // Dispatch event for transcript panel
+        if (data.transcript && data.transcript !== "empty") {
+          window.dispatchEvent(
+            new CustomEvent("audio-chunk-processed", {
+              detail: {
+                type: "audio_processed",
+                payload: {
+                  transcript: data.transcript,
+                  highlights: data.highlights || [],
+                  concepts: data.concepts || [],
+                  ragStatus: data.ragStatus,
+                  highlightEmitted: data.highlightEmitted,
+                  chunkNumber: chunkNumber,
+                },
+              },
+            }),
+          );
+        } else if (data.status === "empty") {
+          console.warn(
+            `[API] Server reported empty audio for chunk #${chunkNumber}`,
+          );
 
-    const eventSource = new EventSource(
-      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/lectures/${lectureId}/stream`,
-    );
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("[SSE] Received update:", data);
-
-        switch (data.type) {
-          case "transcript_update":
-            console.log("[SSE] Transcript update:", data.payload);
-            break;
-          case "highlight_update":
-            console.log("[SSE] Highlight update:", data.payload);
-            break;
-          case "concept_update":
-            console.log("[SSE] Concept update:", data.payload);
-            break;
-          case "summary_update":
-            console.log("[SSE] Summary update:", data.payload);
-            break;
-          case "quiz_update":
-            console.log("[SSE] Quiz question:", data.payload);
-            break;
-          default:
-            console.log("[SSE] Unknown event type:", data.type);
+          window.dispatchEvent(
+            new CustomEvent("audio-chunk-processed", {
+              detail: {
+                type: "audio_processed",
+                payload: {
+                  transcript: "Audio chunk received but no speech detected.",
+                  highlights: [],
+                  concepts: [],
+                  ragStatus: "empty",
+                  highlightEmitted: false,
+                  chunkNumber: chunkNumber,
+                },
+              },
+            }),
+          );
         }
       } catch (error) {
-        console.error("[SSE] Error parsing event data:", error);
+        console.error(
+          `[API] Error sending audio chunk #${chunkNumber}:`,
+          error,
+        );
+
+        window.dispatchEvent(
+          new CustomEvent("audio-chunk-processed", {
+            detail: {
+              type: "error",
+              payload: {
+                message: `Failed to process audio chunk #${chunkNumber}: ${error instanceof Error ? error.message : "Unknown error"}`,
+                chunkNumber: chunkNumber,
+              },
+            },
+          }),
+        );
       }
-    };
 
-    eventSource.onerror = (error) => {
-      console.error("[SSE] Connection error:", error);
-    };
+      // Small delay between chunks to prevent overwhelming the server
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
-    eventSourceRef.current = eventSource;
-    return eventSource;
+    isProcessingRef.current = false;
   }, []);
+
+  // Function to send audio chunk to backend
+  const enqueueAudioChunk = useCallback(
+    (audioBlob: Blob, chunkNumber: number, lectureId: string) => {
+      // Add to queue
+      audioQueueRef.current.push({ blob: audioBlob, chunkNumber });
+
+      // Process queue
+      processAudioQueue(lectureId);
+    },
+    [processAudioQueue],
+  );
+
+  // Function to record a chunk
+  const recordChunk = useCallback(() => {
+    if (!mediaRecorderRef.current || !isActiveRef.current || !state.isRecording)
+      return;
+
+    console.log(`[AUDIO] Starting chunk #${chunkCountRef.current + 1}`);
+    mediaRecorderRef.current.start();
+
+    // Stop after 10 seconds
+    setTimeout(() => {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state === "recording"
+      ) {
+        console.log(
+          `[AUDIO] Stopping chunk #${chunkCountRef.current + 1} after 10 seconds`,
+        );
+        mediaRecorderRef.current.stop();
+      }
+    }, 10000);
+  }, [state.isRecording]);
+
+  // Set up SSE connection for real-time updates
+  const setupSSEConnection = useCallback(
+    (lectureId: string) => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("[SSE] No authentication token found");
+        return null;
+      }
+
+      console.log(`[SSE] Connecting to lecture stream: ${lectureId}`);
+
+      const eventSource = new EventSource(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/lectures/${lectureId}/stream?token=${encodeURIComponent(token)}`,
+      );
+
+      eventSource.onopen = () => {
+        console.log("[SSE] Connected to lecture stream");
+        window.dispatchEvent(
+          new CustomEvent("lecture-stream-update", {
+            detail: {
+              type: "connection_established",
+              payload: { lectureId },
+            },
+          }),
+        );
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("[SSE] Received update:", data);
+
+          // Dispatch a custom event that TranscriptPanel can listen to
+          window.dispatchEvent(
+            new CustomEvent("lecture-stream-update", {
+              detail: {
+                type: data.type || "unknown",
+                payload: data.payload || data,
+                timestamp: new Date().toISOString(),
+              },
+            }),
+          );
+        } catch (error) {
+          console.error("[SSE] Error parsing event data:", error);
+        }
+      };
+
+      eventSource.onerror = (error) => {
+        console.error("[SSE] Connection error:", error);
+
+        window.dispatchEvent(
+          new CustomEvent("lecture-stream-update", {
+            detail: {
+              type: "connection_error",
+              payload: { error: "Connection lost" },
+            },
+          }),
+        );
+
+        // Implement reconnection logic
+        setTimeout(() => {
+          if (state.lectureId && isActiveRef.current) {
+            console.log("[SSE] Attempting to reconnect...");
+            setupSSEConnection(state.lectureId);
+          }
+        }, 5000);
+      };
+
+      eventSourceRef.current = eventSource;
+      return eventSource;
+    },
+    [state.lectureId],
+  );
 
   const startRecording = useCallback(async () => {
     try {
       setState((prev) => ({ ...prev, error: null }));
 
+      // Reset counters and flags
+      chunkCountRef.current = 0;
+      audioQueueRef.current = [];
+      isActiveRef.current = true;
+      startTimeRef.current = Date.now();
+
       // 1. Start lecture session
-      console.log("[v0] Starting lecture session...");
       const lectureId = await startLectureSession();
-      console.log("[v0] Lecture started with ID:", lectureId);
 
-      // Store lectureId in ref for use in callback
-      currentLectureIdRef.current = lectureId;
-      chunkCountRef.current = 0; // Reset chunk counter
+      // 2. Update state with lectureId immediately
+      setState((prev) => ({ ...prev, lectureId }));
 
-      // 2. Set up SSE connection for real-time updates
+      // 3. Set up SSE connection for real-time updates
       setupSSEConnection(lectureId);
 
-      // 3. Request microphone access
+      // 4. Request microphone access with optimal settings
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 44100,
+          autoGainControl: true,
+          sampleRate: 48000, // Higher sample rate for better quality
+          channelCount: 1, // Mono is better for speech recognition
+          sampleSize: 16, // 16-bit samples
         },
       });
 
       streamRef.current = stream;
 
-      // 4. Set up audio context for visualization
-      const audioContext = new AudioContext();
+      // 5. Set up audio context for visualization
+      const audioContext = new AudioContext({ sampleRate: 48000 });
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.4;
+      analyser.fftSize = 256; // Smaller for faster processing
+      analyser.smoothingTimeConstant = 0.3;
       analyser.minDecibels = -90;
       analyser.maxDecibels = -10;
       source.connect(analyser);
@@ -188,124 +407,195 @@ export function useAudioRecorder(courseId: string) {
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
 
-      // 5. Determine the best supported audio format
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/mp4")
-          ? "audio/mp4"
-          : "audio/webm";
+      // 6. Test for supported audio formats - prioritize Opus
+      let mimeType: string;
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-        audioBitsPerSecond: 128000,
-      });
+      // Try Opus first (most efficient for speech)
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        mimeType = "audio/webm;codecs=opus";
+        console.log("[AUDIO] Using Opus codec (WebM container)");
+      } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
+        mimeType = "audio/ogg;codecs=opus";
+        console.log("[AUDIO] Using Opus codec (Ogg container)");
+      } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+        mimeType = "audio/webm";
+        console.log("[AUDIO] Using WebM format");
+      } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+        console.log("[AUDIO] Using MP4 format");
+      } else {
+        mimeType = "audio/webm"; // Fallback
+        console.warn(
+          "[AUDIO] Using default WebM format, some browsers may not support this",
+        );
+      }
 
+      console.log(`[AUDIO] Selected mime type: ${mimeType}`);
+
+      // 7. Create MediaRecorder with optimal settings
+      const options: MediaRecorderOptions = {
+        mimeType: mimeType,
+        audioBitsPerSecond: 64000, // Lower bitrate for speech (saves bandwidth)
+      };
+
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
 
-      const startTime = Date.now();
-
-      // 6. Handle audio data - using refs instead of state
-      mediaRecorder.ondataavailable = async (event) => {
-        if (event.data.size > 0 && currentLectureIdRef.current) {
+      // 8. Handle audio data - collect chunks and send them
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
           chunkCountRef.current++;
-          const chunkNumber = chunkCountRef.current;
-          const lectureId = currentLectureIdRef.current;
 
-          console.log(
-            `[v0] Data available for chunk #${chunkNumber}, size: ${event.data.size} bytes`,
-          );
+          console.log(`[AUDIO] Chunk #${chunkCountRef.current} available:`, {
+            size: `${(event.data.size / 1024).toFixed(2)} KB`,
+            type: event.data.type,
+          });
 
-          // Send chunk to backend
-          await sendAudioChunk(event.data, chunkNumber, lectureId);
+          // Create a fresh blob with proper type
+          const audioBlob = new Blob([event.data], {
+            type: mimeType,
+          });
 
-          // Update state with current chunk count
-          setState((prev) => ({ ...prev, chunksSent: chunkNumber }));
+          // Enqueue for sending
+          enqueueAudioChunk(audioBlob, chunkCountRef.current, lectureId);
+        } else {
+          console.warn("[AUDIO] Empty or invalid audio data received");
         }
       };
 
-      mediaRecorder.onerror = (error) => {
-        console.error("[v0] MediaRecorder error:", error);
+      mediaRecorder.onerror = (event) => {
+        console.error("[AUDIO] MediaRecorder error:", event);
         setState((prev) => ({
           ...prev,
           error: "Recording error occurred",
           isRecording: false,
         }));
+
+        isActiveRef.current = false;
+
+        window.dispatchEvent(
+          new CustomEvent("lecture-stream-update", {
+            detail: {
+              type: "recording_error",
+              payload: { error: "MediaRecorder error" },
+            },
+          }),
+        );
       };
 
-      // 7. Start recording with 3-second intervals
-      mediaRecorder.start(3000);
-      console.log("[v0] MediaRecorder started with 3000ms timeslice");
+      mediaRecorder.onstop = () => {
+        console.log(`[AUDIO] Chunk #${chunkCountRef.current} stopped`);
 
-      // 8. Update current time every 100ms
+        if (state.isRecording && isActiveRef.current) {
+          // Start next chunk with fresh header
+          recordChunk();
+        }
+      };
+
+      // 9. Start the first chunk
+      recordChunk();
+
+      // 10. Update current time every 100ms
       timeIntervalRef.current = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         setState((prev) => ({ ...prev, currentTime: elapsed }));
       }, 100);
 
-      // 9. Update state
+      // 11. Update state
       setState((prev) => ({
         ...prev,
         isRecording: true,
         isPaused: false,
         chunksSent: 0,
         currentTime: 0,
-        lectureId: lectureId,
       }));
 
-      console.log("[v0] Recording started");
-      console.log(`[v0] Audio format: ${mimeType}`);
-      console.log(`[v0] Lecture ID: ${lectureId}`);
-      console.log("[v0] Sending audio chunks every 3 seconds...");
+      console.log("[AUDIO] Recording started successfully");
+      console.log(`[AUDIO] Lecture ID: ${lectureId}`);
       console.log("---");
+
+      // Notify transcript panel
+      window.dispatchEvent(
+        new CustomEvent("lecture-stream-update", {
+          detail: {
+            type: "recording_started",
+            payload: { lectureId },
+          },
+        }),
+      );
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to start recording";
-      setState((prev) => ({ ...prev, error: errorMessage }));
-      console.error("[v0] Recording error:", errorMessage);
-    }
-  }, [startLectureSession, setupSSEConnection, sendAudioChunk]);
+      console.error("[AUDIO] Recording error:", errorMessage, err);
 
-  const pauseRecording = useCallback(() => {
-    if (mediaRecorderRef.current && state.isRecording && !state.isPaused) {
-      mediaRecorderRef.current.pause();
-      setState((prev) => ({ ...prev, isPaused: true }));
-      console.log("[v0] Recording paused");
-    }
-  }, [state.isRecording, state.isPaused]);
+      setState((prev) => ({
+        ...prev,
+        error: errorMessage,
+        isRecording: false,
+      }));
 
-  const resumeRecording = useCallback(() => {
-    if (mediaRecorderRef.current && state.isRecording && state.isPaused) {
-      mediaRecorderRef.current.resume();
-      setState((prev) => ({ ...prev, isPaused: false }));
-      console.log("[v0] Recording resumed");
+      isActiveRef.current = false;
+
+      window.dispatchEvent(
+        new CustomEvent("lecture-stream-update", {
+          detail: {
+            type: "recording_error",
+            payload: { error: errorMessage },
+          },
+        }),
+      );
     }
-  }, [state.isRecording, state.isPaused]);
+  }, [
+    startLectureSession,
+    setupSSEConnection,
+    enqueueAudioChunk,
+    recordChunk,
+    state.isRecording,
+  ]);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && state.isRecording) {
+    console.log("[AUDIO] Stopping recording...");
+
+    // Set active flag to false to stop recording loop
+    isActiveRef.current = false;
+
+    // Stop MediaRecorder if it's recording
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
       mediaRecorderRef.current.stop();
-      console.log("[v0] Recording stopped");
-      console.log(`[v0] Total chunks sent: ${state.chunksSent}`);
-      console.log(`[v0] Lecture ID: ${state.lectureId}`);
-      console.log("---");
+      console.log(`[AUDIO] MediaRecorder stopped (was recording)`);
+    } else if (mediaRecorderRef.current) {
+      console.log(
+        `[AUDIO] MediaRecorder state: ${mediaRecorderRef.current.state}`,
+      );
     }
+
+    console.log(`[AUDIO] Total chunks sent: ${chunkCountRef.current}`);
+    console.log(`[AUDIO] Final Lecture ID: ${state.lectureId}`);
+    console.log("---");
 
     // Close SSE connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
+      console.log("[SSE] Connection closed");
     }
 
     // Clean up media resources
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop();
+        console.log(`[AUDIO] Stopped track: ${track.kind}`);
+      });
       streamRef.current = null;
     }
 
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
+      console.log("[AUDIO] AudioContext closed");
     }
 
     if (intervalRef.current) {
@@ -316,20 +606,34 @@ export function useAudioRecorder(courseId: string) {
     if (timeIntervalRef.current) {
       clearInterval(timeIntervalRef.current);
       timeIntervalRef.current = null;
+      console.log("[AUDIO] Timers cleared");
     }
+
+    // Clear audio queue
+    audioQueueRef.current = [];
+    isProcessingRef.current = false;
 
     analyserRef.current = null;
     mediaRecorderRef.current = null;
-    currentLectureIdRef.current = null;
-    chunkCountRef.current = 0;
 
     setState((prev) => ({
       ...prev,
       isRecording: false,
       isPaused: false,
-      lectureId: null,
     }));
-  }, [state.isRecording, state.chunksSent, state.lectureId]);
+
+    // Notify transcript panel with delay to ensure it only fires once
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent("lecture-stream-update", {
+          detail: {
+            type: "recording_stopped",
+            payload: {},
+          },
+        }),
+      );
+    }, 100);
+  }, [state.lectureId]);
 
   const getAnalyser = useCallback(() => analyserRef.current, []);
 
@@ -337,8 +641,6 @@ export function useAudioRecorder(courseId: string) {
     ...state,
     startRecording,
     stopRecording,
-    pauseRecording,
-    resumeRecording,
     getAnalyser,
   };
 }
