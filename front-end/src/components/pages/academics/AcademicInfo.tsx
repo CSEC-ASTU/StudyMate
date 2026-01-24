@@ -151,11 +151,12 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/auth/signup`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/profile/onboarding/step1`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "bearer-token": localStorage.getItem("token") || "",
           },
           body: JSON.stringify({
             educationLevel,
@@ -178,9 +179,9 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
       console.error("Onboarding error:", error);
       const newErrors: Record<string, string> = {};
       if (error instanceof Error) {
-         if (error.message) {
-            newErrors[error.message as string] = error.message;
-          }
+        if (error.message) {
+          newErrors[error.message as string] = error.message;
+        }
       } else {
         setErrors(newErrors);
       }
