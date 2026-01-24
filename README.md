@@ -1,23 +1,21 @@
-🛠️ Tech Stack
-Frontend
-Next.js 14 - React framework with App Router
+StudyMate AI – RAG-Powered Learning Assistant
 
-TypeScript - Type-safe JavaScript
+This project presents the concept of an AI-powered study companion for university students that transforms everything a student learns into organized, useful knowledge.
 
-Tailwind CSS - Utility-first CSS framework
+At the beginning of a semester, students add their courses to the system. For each course, they can upload lecture materials such as PDFs, PowerPoint slides, or documents, or attend live lectures. The system processes both uploaded files and live lecture content.
 
-Zod - Schema validation library
+Instead of storing raw text, the system understands the meaning of the content and saves it as structured knowledge inside an AI memory. This allows students to interact with their learning materials in a smarter way.
 
-Zustand - State management
+Students can:
 
-UI Components
-Custom UI components (Button, Input, Label, Card, Select)
+Ask questions about their courses
 
-Lucide React - Icon library
+Get simple summaries of complex topics
 
-Development Tools
-PNPM - Fast, disk space efficient package manager
+See highlighted key concepts for exams
 
-ESLint - Code linting
+Reuse stored knowledge throughout the semester
 
-TypeScript - Static type checking
+Vision
+
+The main goal of the system is to reduce study overload and help students focus on what truly matters, without rewriting notes or relying on blind memorization.
