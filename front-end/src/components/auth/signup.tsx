@@ -156,7 +156,7 @@ export function SignupPage() {
     setApiError('')
 
     try {
-      const response = await fetch(`${process.env.BACKEND_API_URL}/api/auth/signup`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
