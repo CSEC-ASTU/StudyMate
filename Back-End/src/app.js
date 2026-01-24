@@ -32,7 +32,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.server.corsOrigin,
+    origin: [config.server.corsOrigin, 'http://localhost:3000', 'http://localhost:3001', "https://studymate-api-vl93.onrender.com"],
     credentials: true,
   })
 );
