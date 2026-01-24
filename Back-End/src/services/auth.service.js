@@ -23,7 +23,8 @@ export const signup = async (data) => {
     },
   });
 
-  return { user };
+  const token = generateToken({ id: user.id, email: user.email });
+  return { token, user };
 };
 
 export const login = async (data) => {
@@ -43,8 +44,8 @@ export const login = async (data) => {
     throw new Error('Invalid credentials');
   }
 
-  const token = generateToken({ id: user.id, email: user.email });
   
+  const token = generateToken({ id: user.id, email: user.email });
   // Remove passwordHash from response
   const { passwordHash: _, ...userWithoutPassword } = user;
 
