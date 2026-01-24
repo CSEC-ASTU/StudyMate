@@ -6,6 +6,7 @@ import { handleLiveLectureAudio } from "../controllers/lectureInput.controller.j
 import { getExplanation } from "../controllers/explanation.controller.js";
 import { getQuiz } from "../controllers/quiz.controller.js";
 import { getSessionSummary } from "../controllers/summary.controller.js";
+import { lectureStreamHandler } from "../controllers/lectureStream.controller.js";
 
 const router = express.Router();
 const upload = multer(); // memory storage
@@ -26,6 +27,9 @@ router.post("/quiz", getQuiz);
 
 // Phase 4 (or Phase 5 if you have summary agent)
 router.post("/summary", getSessionSummary);
+
+// Lecture Stream (SSE)
+router.get("/:lectureId/stream", lectureStreamHandler);
 
 
 export default router;
