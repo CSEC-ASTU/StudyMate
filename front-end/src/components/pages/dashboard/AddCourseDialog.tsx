@@ -48,6 +48,18 @@ const useCourseStore = create<CourseStore>((set) => ({
   clearErrors: () => set({ errors: {} }),
 }));
 
+interface Semester {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    courses: number;
+  };
+}
+
 interface AddCourseDialogProps {
   onCourseAdded?: () => void;
   semesterId?: string;
@@ -59,9 +71,7 @@ export function AddCourseDialog({
 }: AddCourseDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [semesters, setSemesters] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     creditHours: 3,
@@ -74,12 +84,12 @@ export function AddCourseDialog({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Fetch semesters on component mount
+  // Fetch semesters on dialog open
   useEffect(() => {
     if (open) {
       fetchSemesters();
     }
-  }, );
+  });
 
   // Get semesterId from URL if not provided as prop
   useEffect(() => {
@@ -94,7 +104,12 @@ export function AddCourseDialog({
   const fetchSemesters = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        console.error("No token found in localStorage");
+        return;
+      }
+
+      console.log("Fetching semesters with token:", token);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/semesters`,
@@ -105,16 +120,20 @@ export function AddCourseDialog({
         },
       );
 
+      console.log("Semesters API response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log("Fetched semesters:", data);
         setSemesters(data);
 
-        // If no semester is selected but we have semesters, select the active one or first one
+        // If no semester is selected but we have semesters, select the first one
         if (!formData.semesterId && data.length > 0) {
-          const activeSemester =
-            data.find((sem: { id: string; name: string; isActive?: boolean }) => sem.isActive) || data[0];
-          setFormData((prev) => ({ ...prev, semesterId: activeSemester.id }));
+          setFormData((prev) => ({ ...prev, semesterId: data[0].id }));
         }
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to fetch semesters:", errorText);
       }
     } catch (error) {
       console.error("Error fetching semesters:", error);
@@ -224,6 +243,12 @@ export function AddCourseDialog({
         throw new Error("Authentication required. Please log in again.");
       }
 
+      // Find the selected semester name for logging
+      const selectedSemester = semesters.find(
+        (s) => s.id === formData.semesterId,
+      );
+      console.log("Creating course for semester:", selectedSemester?.name);
+
       // Send POST request to create course in the selected semester
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/semesters/${formData.semesterId}/courses`,
@@ -241,6 +266,7 @@ export function AddCourseDialog({
       );
 
       const data = await response.json();
+      console.log("Course creation response:", data);
 
       if (!response.ok) {
         throw new Error(
@@ -248,7 +274,7 @@ export function AddCourseDialog({
         );
       }
 
-      console.log("Course created:", data);
+      console.log("Course created successfully:", data);
 
       // Reset form and close dialog
       setFormData({
@@ -398,17 +424,26 @@ export function AddCourseDialog({
                 <SelectTrigger
                   className={`${errors.semesterId ? "border-destructive focus:ring-destructive/50" : "border-border focus:ring-primary/50"}`}
                 >
-                  <SelectValue placeholder="Select a semester" />
+                  <SelectValue placeholder="Select a semester">
+                    {formData.semesterId && semesters.length > 0
+                      ? semesters.find((s) => s.id === formData.semesterId)
+                          ?.name
+                      : "Select a semester"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.length === 0 ? (
+                  {loading ? (
                     <SelectItem value="loading" disabled>
                       Loading semesters...
+                    </SelectItem>
+                  ) : semesters.length === 0 ? (
+                    <SelectItem value="no-semesters" disabled>
+                      No semesters available
                     </SelectItem>
                   ) : (
                     semesters.map((semester) => (
                       <SelectItem key={semester.id} value={semester.id}>
-                        {semester.name}
+                        {semester.name} ({semester._count.courses} courses)
                       </SelectItem>
                     ))
                   )}
@@ -438,7 +473,11 @@ export function AddCourseDialog({
             </Button>
             <Button
               type="submit"
-              disabled={loading || Object.keys(errors).length > 0}
+              disabled={
+                loading ||
+                Object.keys(errors).length > 0 ||
+                !formData.semesterId
+              }
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

@@ -5,16 +5,21 @@ import { TranscriptPanel } from "@/components/pages/livestream/TransactionPanel"
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { Mic, Square, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function LivestreamPage() {
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get("courseId");
+
   const {
     isRecording,
     error,
     currentTime,
+    lectureId,
     startRecording,
     stopRecording,
     getAnalyser,
-  } = useAudioRecorder();
+  } = useAudioRecorder(courseId || "");
 
   const transcriptContainerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -26,6 +31,10 @@ export default function LivestreamPage() {
     if (isRecording) {
       stopRecording();
     } else {
+      if (!courseId) {
+        alert("Course ID is missing. Please check the URL.");
+        return;
+      }
       startRecording();
     }
   };
@@ -152,6 +161,13 @@ export default function LivestreamPage() {
     };
   }, []);
 
+  // Show warning if courseId is missing
+  useEffect(() => {
+    if (!courseId) {
+      console.error("Course ID is missing from URL");
+    }
+  }, [courseId]);
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Main container */}
@@ -164,8 +180,15 @@ export default function LivestreamPage() {
             scrollBehavior: "smooth",
           }}
         >
-          <TranscriptPanel isRecording={isRecording} />
+          <TranscriptPanel isRecording={isRecording} lectureId={lectureId} />
         </div>
+
+        {/* Lecture ID Display - Only when recording */}
+        {isRecording && lectureId && (
+          <div className="fixed top-4 left-4 z-40 px-3 py-1.5 bg-black/50 text-xs text-white/80 rounded-md backdrop-blur-sm">
+            Lecture ID: {lectureId.substring(0, 8)}...
+          </div>
+        )}
 
         {/* Scroll to bottom button - Responsive positioning */}
         {showScrollButton && (
@@ -223,6 +246,7 @@ export default function LivestreamPage() {
               <button
                 type="button"
                 onClick={handleToggle}
+                disabled={!courseId && !isRecording}
                 className={`
                   relative flex items-center justify-center
                   w-12 h-12 md:w-14 md:h-14 rounded-full
@@ -232,7 +256,9 @@ export default function LivestreamPage() {
                   ${
                     isRecording
                       ? "bg-red-500/10 border-red-500 hover:bg-red-500/20"
-                      : "bg-primary/10 border-primary hover:bg-primary/20"
+                      : !courseId
+                        ? "bg-gray-500/10 border-gray-500 cursor-not-allowed"
+                        : "bg-primary/10 border-primary hover:bg-primary/20"
                   }
                 `}
                 style={{
@@ -251,9 +277,17 @@ export default function LivestreamPage() {
 
               {/* Tap to start text - only when not recording */}
               {!isRecording && (
-                <p className="text-muted-foreground text-xs md:text-sm mt-3 md:mt-4">
-                  Tap to start recording
-                </p>
+                <div className="text-center mt-3 md:mt-4">
+                  {!courseId ? (
+                    <p className="text-destructive text-xs md:text-sm">
+                      Missing course ID in URL
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs md:text-sm">
+                      Tap to start recording
+                    </p>
+                  )}
+                </div>
               )}
 
               {/* Error Display - Responsive */}

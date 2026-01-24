@@ -22,8 +22,7 @@ export function LoginPage() {
     setError('')
 
     try {
-      const BACKEND_URL = 'https://studymate-api-vl93.onrender.com'
-      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,16 +47,20 @@ export function LoginPage() {
       }
       router.push('/dashboard')
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error)
-      setError(error.message || 'Invalid email or password. Please try again.')
+      if (error instanceof Error) {
+        setError(error.message || 'Invalid email or password. Please try again.')
+      } else {
+        setError('Invalid email or password. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-linear-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
@@ -167,7 +170,7 @@ export function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
                 className="font-medium text-primary hover:text-primary/80 transition"

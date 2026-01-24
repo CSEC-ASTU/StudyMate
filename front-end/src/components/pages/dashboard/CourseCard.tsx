@@ -1,23 +1,26 @@
-"use client"
+// app/components/pages/dashboard/CourseCard.tsx
+"use client";
 
-import { useState } from "react"
-import { BookOpen, Clock, Users } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { CourseActionModal } from "./CourseModal"
+import { useState } from "react";
+import { BookOpen, Clock, Users } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CourseActionModal } from "./CourseModal";
 
 interface CourseCardProps {
-  name: string
-  code: string
-  creditHours: number
-  instructor: string
-  progress: number
-  students: number
-  nextClass?: string
+  id?: string;
+  name: string;
+  code: string;
+  creditHours: number;
+  instructor: string;
+  progress: number;
+  students: number;
+  nextClass?: string;
 }
 
 export function CourseCard({
+  id,
   name,
   code,
   creditHours,
@@ -26,7 +29,21 @@ export function CourseCard({
   students,
   nextClass,
 }: CourseCardProps) {
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Format the course code if needed
+  const formattedCode =
+    code ||
+    name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
+
+  // Default values for missing data
+  const displayInstructor = instructor || "Not assigned";
+  const displayProgress = Math.min(Math.max(progress || 0, 0), 100); // Ensure between 0-100
+  const displayStudents = students || 0;
 
   return (
     <>
@@ -39,32 +56,40 @@ export function CourseCard({
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
               <BookOpen className="h-5 w-5 text-primary-foreground" />
             </div>
-            <Badge variant="none" className="border-secondary text-secondary font-bold">
-              {creditHours} Credits
+            <Badge
+              variant="none"
+              className="border-secondary text-secondary font-bold"
+            >
+              {creditHours || 0} Credits
             </Badge>
           </div>
           <div className="mt-3">
-            <h3 className="font-semibold text-foreground line-clamp-1">{name}</h3>
-            <p className="text-sm text-muted-foreground">{code}</p>
+            <h3 className="font-semibold text-foreground line-clamp-2">
+              {name}
+            </h3>
+            <p className="text-sm text-muted-foreground">{formattedCode}</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Instructor: <span className="text-foreground">{instructor}</span>
+            Instructor:{" "}
+            <span className="text-foreground">{displayInstructor}</span>
           </p>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium text-foreground">{progress}%</span>
+              <span className="font-medium text-foreground">
+                {displayProgress}%
+              </span>
             </div>
-            <Progress value={progress} className="h-2 bg-secondary" />
+            <Progress value={displayProgress} className="h-2 bg-secondary" />
           </div>
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              <span>{students} students</span>
+              <span>{displayStudents} students</span>
             </div>
             {nextClass && (
               <div className="flex items-center gap-1">
@@ -80,7 +105,8 @@ export function CourseCard({
         open={modalOpen}
         onOpenChange={setModalOpen}
         courseName={name}
+        courseId={id}
       />
     </>
-  )
+  );
 }
