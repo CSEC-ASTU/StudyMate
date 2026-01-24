@@ -176,6 +176,7 @@ export function SignupPage() {
 
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user))
+        localStorage.setItem('token', JSON.stringify(data?.token))
       }
       router.push('/academic')
       
