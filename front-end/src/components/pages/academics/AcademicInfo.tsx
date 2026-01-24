@@ -150,14 +150,14 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
     }
 
     try {
-      localStorage.setItem("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIwNjAzMDY4LTk2YzItNGIxMy1iZWFkLWQyNmQxMjg2Yjc2YyIsImVtYWlsIjoidW5pcXVlRW1haWxAZ21haWwuY29tIiwiaWF0IjoxNzY5MjE3NzIzLCJleHAiOjE3Njk4MjI1MjN9.FpmO3rSZ2esaiTIBKdDkJWjGBMRrAKUgNVjQWA9_DWw");
+      const token = localStorage.getItem("token")
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/profile/onboarding/step1`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify({
             educationLevel,
@@ -175,7 +175,10 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
       if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
+
+      setIsLoading(false);
       onNext({ educationLevel, institutionName });
+      
     } catch (error: unknown) {
       console.error("Onboarding error:", error);
       const newErrors: Record<string, string> = {};
@@ -186,9 +189,8 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
       } else {
         setErrors(newErrors);
       }
-    } finally {
       setIsLoading(false);
-    }
+    } 
   };
 
   const isComplete =
@@ -204,7 +206,7 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
                 Academic Information
               </h1>
               <p className="text-sm text-muted-foreground">
-                Let's start by understanding your educational background
+                Lets start by understanding your educational background
               </p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-5">

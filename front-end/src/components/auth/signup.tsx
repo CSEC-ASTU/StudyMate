@@ -174,6 +174,10 @@ export function SignupPage() {
         throw new Error(data.error || data.message || 'Signup failed')
       }
 
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user))
       }

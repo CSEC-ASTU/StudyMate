@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { ChevronRight, SkipForward } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { z } from 'zod'
 import { create } from 'zustand'
 
@@ -55,6 +55,7 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
   const [yearSemester, setYearSemester] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [apiError, setApiError] = useState<string>('')
   const { errors, setErrors, clearErrors } = useUniversityProfileStore()
 
   const handleUniversityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,18 +183,40 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
     if (!validateForm()) return
 
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      onNext({ university, department, program, yearSemester })
-    }, 500)
-  }
+    setApiError('')
 
-  const handleSkip = async () => {
-    setIsLoading(true)
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/profile/onboarding/step2`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          university,
+          department,
+          program,
+          yearOrSemester: yearSemester,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to update university profile')
+      }
+
+      onNext({ university, department, program, yearSemester })
+    } catch (error: unknown) {
+      console.error('University profile error:', error)
+      if (error instanceof Error) {
+        setApiError(error.message || 'An error occurred. Please try again.')
+      } else {
+        setApiError('An error occurred. Please try again.')
+      }
+    } finally {
       setIsLoading(false)
-      onNext({ university: '', department: '', program: '', yearSemester: '' })
-    }, 500)
+    }
   }
 
   const isSubmitDisabled = isLoading || !university || !department || !program || !yearSemester || Object.keys(errors).length > 0
@@ -213,6 +236,12 @@ export function UniversityProfile({ onNext }: UniversityProfileProps) {
                 Tell us more about your university experience
               </p>
             </div>
+
+            {apiError && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive text-center">{apiError}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
