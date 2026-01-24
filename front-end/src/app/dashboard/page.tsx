@@ -1,68 +1,78 @@
 "use client";
 
-import { BookOpen, Clock, GraduationCap, TrendingUp } from "lucide-react";
+import { BookOpen, Clock, GraduationCap, TrendingUp, AlertCircle } from "lucide-react";
 import { StatsCard } from "@/components/pages/dashboard/StatusCard";
 import { CourseCard } from "@/components/pages/dashboard/CourseCard";
 import { ScheduleCard } from "@/components/pages/dashboard/ScheduleCard";
-
-const courses = [
-  {
-    name: "Introduction to Computer Science",
-    code: "CS101",
-    creditHours: 3,
-    instructor: "Dr. Sarah Johnson",
-    progress: 65,
-    students: 45,
-    nextClass: "Today, 2:00 PM",
-  },
-  {
-    name: "Data Structures & Algorithms",
-    code: "CS201",
-    creditHours: 4,
-    instructor: "Prof. Michael Chen",
-    progress: 42,
-    students: 38,
-    nextClass: "Tomorrow",
-  },
-  {
-    name: "Web Development Fundamentals",
-    code: "CS150",
-    creditHours: 3,
-    instructor: "Ms. Emily Davis",
-    progress: 78,
-    students: 52,
-    nextClass: "Wed, 10:00 AM",
-  },
-];
-
-const todaySchedule = [
-  {
-    time: "9:00 AM - 10:30 AM",
-    title: "Web Development Lecture",
-    type: "lecture" as const,
-  },
-  { time: "2:00 PM - 3:30 PM", title: "CS101 Quiz", type: "quiz" as const },
-  {
-    time: "5:00 PM",
-    title: "Assignment Due: Data Structures",
-    type: "assignment" as const,
-  },
-];
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 export default function DashboardPage() {
+  const { data, isLoading, error } = useDashboardData();
+
+  if (isLoading) {
+    return (
+      <main className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading dashboard...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load Dashboard</h3>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Calculate stats from real data
+  const activeCourses = data.courses.length;
+  const totalCredits = data.courses.reduce(
+    (sum, course) => sum + (course.creditHours || 0),
+    0
+  );
+  const averageProgress = data.analysis?.averageProgress || 
+    (data.analysis?.overallProgress ?? 0);
+
+  // Transform upcoming assessments for schedule display
+  const todaySchedule = (data.analysis?.upcomingAssessments || [])
+    .slice(0, 5)
+    .map((assessment) => ({
+      time: new Date(assessment.dueDate).toLocaleDateString(),
+      title: assessment.title,
+      type: "assignment" as const,
+    }));
+
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatsCard
           title="Active Courses"
-          value={6}
+          value={activeCourses}
           description="This semester"
           icon={BookOpen}
         />
         <StatsCard
           title="Total Credits"
-          value={18}
+          value={totalCredits}
           description="Enrolled credits"
           icon={GraduationCap}
         />
@@ -75,7 +85,7 @@ export default function DashboardPage() {
         />
         <StatsCard
           title="Average Progress"
-          value="62%"
+          value={`${Math.round(averageProgress)}%`}
           description="Course completion"
           icon={TrendingUp}
           trend={{ value: 5, positive: true }}
@@ -94,16 +104,51 @@ export default function DashboardPage() {
               View all
             </a>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-            {courses.map((course) => (
-              <CourseCard key={course.code} {...course} />
-            ))}
-          </div>
+          
+          {data.courses.length === 0 ? (
+            <div className="text-center py-12 bg-muted/50 rounded-lg border border-border">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No Courses Yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Start by adding courses to your semester
+              </p>
+              <a
+                href="/dashboard/courses"
+                className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
+              >
+                Add Course
+              </a>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+              {data.courses.slice(0, 4).map((course) => {
+                const progress = data.courseProgress[course.id];
+                return (
+                  <CourseCard
+                    key={course.id}
+                    name={course.name}
+                    code={course.code}
+                    creditHours={course.creditHours || 0}
+                    instructor={course.instructor || "TBA"}
+                    progress={progress?.progress || 0}
+                    students={0} // Not available from API
+                    nextClass="TBA" // Not available from API
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Schedule Section */}
         <div>
-          <ScheduleCard items={todaySchedule} />
+          <ScheduleCard items={todaySchedule.length > 0 ? todaySchedule : [
+            {
+              time: "No upcoming events",
+              title: "Your schedule is clear",
+              type: "lecture" as const,
+            },
+          ]} />
         </div>
       </div>
     </main>
