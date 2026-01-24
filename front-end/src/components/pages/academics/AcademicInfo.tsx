@@ -150,13 +150,14 @@ export function AcademicInfo({ onNext }: AcademicInfoProps) {
     }
 
     try {
+      localStorage.setItem("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIwNjAzMDY4LTk2YzItNGIxMy1iZWFkLWQyNmQxMjg2Yjc2YyIsImVtYWlsIjoidW5pcXVlRW1haWxAZ21haWwuY29tIiwiaWF0IjoxNzY5MjE3NzIzLCJleHAiOjE3Njk4MjI1MjN9.FpmO3rSZ2esaiTIBKdDkJWjGBMRrAKUgNVjQWA9_DWw");
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/profile/onboarding/step1`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "bearer-token": localStorage.getItem("token") || "",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
             educationLevel,
