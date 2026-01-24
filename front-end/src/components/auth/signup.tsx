@@ -156,8 +156,7 @@ export function SignupPage() {
     setApiError('')
 
     try {
-      const BACKEND_URL = 'https://studymate-api-vl93.onrender.com'
-      const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,16 +179,20 @@ export function SignupPage() {
       }
       router.push('/academic')
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Signup error:', error)
-      setApiError(error.message || 'An error occurred during signup. Please try again.')
+      if (error instanceof Error) {
+        setApiError(error.message || 'An error occurred during signup. Please try again.')
+      } else {
+        setApiError('An error occurred during signup. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-linear-to-br from-background via-background to-muted flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <Card className="border border-border bg-card shadow-lg">
           <div className="px-6 py-8 sm:px-8">
