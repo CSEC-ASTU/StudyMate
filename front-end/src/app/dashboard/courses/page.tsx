@@ -1,10 +1,11 @@
-"use client"
+// app/components/pages/dashboard/CoursesPage.tsx
+"use client";
 
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { CourseCard } from "@/components/pages/dashboard/CourseCard"
+import { useState, useEffect, Suspense } from "react";
+import { CourseCard } from "@/components/pages/dashboard/CourseCard";
+import { AddCourseDialog } from "@/components/pages/dashboard/AddCourseDialog";
 
-const allCourses = [
+const initialCourses = [
   {
     name: "Introduction to Computer Science",
     code: "CS101",
@@ -59,37 +60,62 @@ const allCourses = [
     students: 48,
     nextClass: "Mon, 3:00 PM",
   },
-]
+];
 
 export default function CoursesPage() {
+  const [courses] = useState(initialCourses);
+
+  // Optional: Fetch courses from API on component mount
+  useEffect(() => {
+    // You can add API fetching logic here if needed
+    // fetchCourses();
+  }, []);
+
+  const handleCourseAdded = () => {
+    // In a real app, you would refetch courses from the API
+    // For now, we'll just show a message and potentially refresh the page
+    console.log("Course added successfully");
+
+    // You could implement:
+    // 1. Refetch courses from API
+    // 2. Add optimistic UI update
+    // 3. Reload the page (simple approach)
+    // window.location.reload();
+  };
+
   return (
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          {/* Header Actions */}
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground">
-                You are enrolled in <span className="font-semibold text-foreground">{allCourses.length} courses</span> this semester
-              </p>
-            </div>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Course
-            </Button>
-          </div>
-
-          {/* Courses Grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {allCourses.map((course) => (
-              <CourseCard key={course.code} {...course} />
-            ))}
-          </div>
-
-          {/* Info Note */}
-          <div className="mt-6 rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Tip:</span> Click on any course to access livestream, take exams, or study with our AI assistant.
+    <Suspense>
+      <main className="flex-1 overflow-auto p-4 md:p-6">
+        {/* Header Actions */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <p className="text-muted-foreground">
+              You are enrolled in{" "}
+              <span className="font-semibold text-foreground">
+                {courses.length} courses
+              </span>{" "}
+              this semester
             </p>
           </div>
-        </main>
-  )
+          <AddCourseDialog onCourseAdded={handleCourseAdded} />
+        </div>
+
+        {/* Courses Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course) => (
+            <CourseCard key={course.code} {...course} />
+          ))}
+        </div>
+
+        {/* Info Note */}
+        <div className="mt-6 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Tip:</span> Click on
+            any course to access livestream, take exams, or study with our AI
+            assistant.
+          </p>
+        </div>
+      </main>
+    </Suspense>
+  );
 }

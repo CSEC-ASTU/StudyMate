@@ -19,6 +19,16 @@ export default function DashboardLayout({
         title: "Courses",
         subtitle: "Manage and view your courses",
       };
+    } else if (pathname === "/dashboard/semesters") {
+      return {
+        title: "Semesters",
+        subtitle: "Manage your academic terms",
+      };
+    } else if (pathname === "/dashboard/settings") {
+      return {
+        title: "Settings",
+        subtitle: "Manage your account preferences",
+      };
     } else if (
       pathname === "/dashboard/profile" ||
       pathname.startsWith("/dashboard/profile/")

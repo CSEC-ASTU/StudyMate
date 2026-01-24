@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { BookOpen, Home, Settings, User } from "lucide-react";
+import { BookOpen, Calendar1, Home, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +24,11 @@ const mainNavItems = [
     title: "My Courses",
     url: "/dashboard/courses",
     icon: BookOpen,
+  },
+  {
+    title: "Semesters",
+    url: "/dashboard/semesters",
+    icon: Calendar1,
   },
   {
     title: "Profile",
